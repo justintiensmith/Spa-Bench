@@ -6,10 +6,9 @@ SO-101 robot, two RGB camera views, a 1,200-demonstration fine-tuning corpus,
 and matched physical evaluation scenes across five adapted policies from four
 VLA families.
 
-This repository is the artifact index for the MSc thesis project. Large robot
-datasets and model weights are hosted on Hugging Face; this repository contains
-the benchmark manifests, evaluation workbooks, analysis code, preprocessing
-tools, model documentation, and links needed to trace the reported results.
+Large robot datasets and model weights are hosted on Hugging Face; this repository 
+contains the benchmark prompts/scene setups, evaluation workbooks, analysis code, 
+preprocessing tools, model documentation, and links needed to trace the reported results.
 
 > **Status:** research snapshot. The core artifacts are present, but several
 > provenance fields and the final thesis/report files are intentionally marked
@@ -108,10 +107,3 @@ is:
 
 A provisional citation file is provided in [CITATION.cff](CITATION.cff). Replace
 the thesis title, institution, archival URL, and publication details once final.
-
-## Safety
-
-The released policies can generate unsafe or unpredictable robot motion. Use
-physical safeguards, conservative motion limits, an accessible emergency stop,
-and direct human supervision. The public artifacts are research outputs, not a
-validated control system for unattended deployment.
