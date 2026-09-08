@@ -1,0 +1,535 @@
+{
+  "theme": {
+    "dk1": "windowText",
+    "lt1": "window",
+    "dk2": "1F497D",
+    "lt2": "EEECE1",
+    "accent1": "4F81BD",
+    "accent2": "C0504D",
+    "accent3": "9BBB59",
+    "accent4": "8064A2",
+    "accent5": "4BACC6",
+    "accent6": "F79646",
+    "hlink": "0000FF",
+    "folHlink": "800080"
+  },
+  "sheets": {
+    "Paraphrasing Comparison v3": [
+      {
+        "part": "xl/charts/chart1.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 884766,
+            "row": 22,
+            "rowOff": 2448
+          }
+        },
+        "series": [
+          {
+            "title": "Original",
+            "color": {
+              "kind": "schemeClr",
+              "raw": "tx2",
+              "resolved": "tx2"
+            }
+          },
+          {
+            "title": "Paraphrased",
+            "color": null
+          }
+        ]
+      }
+    ],
+    "Preliminary Task Results": [
+      {
+        "part": "xl/charts/chart2.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 199996,
+            "row": 7,
+            "rowOff": 188147
+          },
+          "to": {
+            "col": 23,
+            "colOff": 786391,
+            "row": 27,
+            "rowOff": 82784
+          }
+        },
+        "series": [
+          {
+            "title": "pi0.5 Trained on Spatially Constrained Dataset Model",
+            "color": {
+              "kind": "schemeClr",
+              "raw": "accent1",
+              "resolved": "4F81BD"
+            }
+          },
+          {
+            "title": "pi0.5 trained on the constrained dataset and then fine-tuned on the union",
+            "color": {
+              "kind": "schemeClr",
+              "raw": "accent2",
+              "resolved": "C0504D"
+            }
+          },
+          {
+            "title": "pi0.5 Trained on Spatially Varied Dataset",
+            "color": {
+              "kind": "schemeClr",
+              "raw": "accent3",
+              "resolved": "9BBB59"
+            }
+          },
+          {
+            "title": "pi0.5 trained on union of Spatially Constrained  and Spatially Varied Dataset",
+            "color": {
+              "kind": "schemeClr",
+              "raw": "accent4",
+              "resolved": "8064A2"
+            }
+          }
+        ]
+      }
+    ],
+    "No Movement": [
+      {
+        "part": "xl/charts/chart3.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 199996,
+            "row": 8,
+            "rowOff": 56360
+          }
+        },
+        "series": [
+          {
+            "title": "GR00T Frozen LLM",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "D95140",
+              "resolved": "D95140"
+            }
+          },
+          {
+            "title": "$\\pi_{0.5}$",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "59A55B",
+              "resolved": "59A55B"
+            }
+          },
+          {
+            "title": "MolmoAct2",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "5383ED",
+              "resolved": "5383ED"
+            }
+          }
+        ]
+      }
+    ],
+    "Relational Movement No Movement": [
+      {
+        "part": "xl/charts/chart4.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 694701,
+            "row": 15,
+            "rowOff": 65245
+          }
+        },
+        "series": [
+          {
+            "title": "GR00T Frozen LLM",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "D95140",
+              "resolved": "D95140"
+            }
+          },
+          {
+            "title": "$\\pi_{0.5}$",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "59A55B",
+              "resolved": "59A55B"
+            }
+          },
+          {
+            "title": "MolmoAct2",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "5383ED",
+              "resolved": "5383ED"
+            }
+          }
+        ]
+      }
+    ],
+    "Cross Task Object Chart v2": [
+      {
+        "part": "xl/charts/chart5.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 694701,
+            "row": 15,
+            "rowOff": 65245
+          }
+        },
+        "series": [
+          {
+            "title": "GR00T Frozen LLM",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "D95140",
+              "resolved": "D95140"
+            }
+          },
+          {
+            "title": "$\\pi_{0.5}$",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "59A55B",
+              "resolved": "59A55B"
+            }
+          },
+          {
+            "title": "MolmoAct2",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "5383ED",
+              "resolved": "5383ED"
+            }
+          }
+        ]
+      }
+    ],
+    "Familiar Spatial Task Chart": [
+      {
+        "part": "xl/charts/chart6.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 199996,
+            "row": 8,
+            "rowOff": 56360
+          }
+        },
+        "series": [
+          {
+            "title": "VLA-0",
+            "color": {
+              "kind": "schemeClr",
+              "raw": "bg1",
+              "resolved": "bg1"
+            }
+          },
+          {
+            "title": "GR00T-N1.7 Full FT",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "EAB840",
+              "resolved": "EAB840"
+            }
+          },
+          {
+            "title": "GR00T-N1.7 Frozen LLM",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "D95140",
+              "resolved": "D95140"
+            }
+          },
+          {
+            "title": "Pi0.5",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "57A35A",
+              "resolved": "57A35A"
+            }
+          },
+          {
+            "title": "MolmoAct2",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "5383ED",
+              "resolved": "5383ED"
+            }
+          },
+          {
+            "title": "VLA-0",
+            "color": {
+              "kind": "schemeClr",
+              "raw": "bg1",
+              "resolved": "bg1"
+            }
+          }
+        ]
+      }
+    ],
+    "Matched Manipulation Task Chart": [
+      {
+        "part": "xl/charts/chart7.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 199996,
+            "row": 8,
+            "rowOff": 56360
+          }
+        },
+        "series": [
+          {
+            "title": "GR00T-N1.7 Vision",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "D95140",
+              "resolved": "D95140"
+            }
+          },
+          {
+            "title": "Pi0.5",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "59A55B",
+              "resolved": "59A55B"
+            }
+          },
+          {
+            "title": "MolmoAct2",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "5383ED",
+              "resolved": "5383ED"
+            }
+          }
+        ]
+      }
+    ],
+    "Novel Spatial Task Chart": [
+      {
+        "part": "xl/charts/chart8.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 0,
+            "row": 38,
+            "rowOff": 90912
+          }
+        },
+        "series": [
+          {
+            "title": "GR00T-N1.7",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "D95140",
+              "resolved": "D95140"
+            }
+          },
+          {
+            "title": "Pi0.5",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "59A55B",
+              "resolved": "59A55B"
+            }
+          },
+          {
+            "title": "MolmoAct2",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "5383ED",
+              "resolved": "5383ED"
+            }
+          }
+        ]
+      }
+    ],
+    "Paraphrasing Comparison v2": [
+      {
+        "part": "xl/charts/chart9.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 884766,
+            "row": 22,
+            "rowOff": 2448
+          }
+        },
+        "series": [
+          {
+            "title": "Original",
+            "color": {
+              "kind": "schemeClr",
+              "raw": "tx2",
+              "resolved": "tx2"
+            }
+          },
+          {
+            "title": "Paraphrased",
+            "color": null
+          }
+        ]
+      }
+    ],
+    "Emergent Skills Data": [
+      {
+        "part": "xl/charts/chart10.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 1028699,
+            "row": 24,
+            "rowOff": 44781
+          }
+        },
+        "series": [
+          {
+            "title": "GR00T-N1.7",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "D95140",
+              "resolved": "D95140"
+            }
+          },
+          {
+            "title": "Pi0.5",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "59A55B",
+              "resolved": "59A55B"
+            }
+          },
+          {
+            "title": "MolmoAct2",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "5383ED",
+              "resolved": "5383ED"
+            }
+          }
+        ]
+      }
+    ],
+    " Paraphrasing Comparison v1": [
+      {
+        "part": "xl/charts/chart11.xml",
+        "position": {
+          "from": {
+            "col": 0,
+            "colOff": 749299,
+            "row": 22,
+            "rowOff": 87114
+          }
+        },
+        "series": [
+          {
+            "title": "GR00T-N1.7",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "D95140",
+              "resolved": "D95140"
+            }
+          },
+          {
+            "title": "Pi0.5",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "59A55B",
+              "resolved": "59A55B"
+            }
+          },
+          {
+            "title": "MolmoAct2",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "5383ED",
+              "resolved": "5383ED"
+            }
+          }
+        ]
+      }
+    ],
+    "Sheet2": [
+      {
+        "part": "xl/charts/chart12.xml",
+        "position": {
+          "from": {
+            "col": 16,
+            "colOff": 0,
+            "row": 3,
+            "rowOff": 0
+          },
+          "to": {
+            "col": 29,
+            "colOff": 0,
+            "row": 24,
+            "rowOff": 0
+          }
+        },
+        "series": [
+          {
+            "title": "MolmoAct2",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "E67E00",
+              "resolved": "E67E00"
+            }
+          },
+          {
+            "title": "\u03c00.5",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "07966A",
+              "resolved": "07966A"
+            }
+          },
+          {
+            "title": "GR00T Vision",
+            "color": {
+              "kind": "srgbClr",
+              "raw": "2F67E8",
+              "resolved": "2F67E8"
+            }
+          }
+        ]
+      }
+    ],
+    "Pi0.5 Robustness": [
+      {
+        "part": "xl/charts/chart13.xml",
+        "position": {
+          "from": {
+            "col": 3,
+            "colOff": 199996,
+            "row": 13,
+            "rowOff": 84665
+          },
+          "to": {
+            "col": 12,
+            "colOff": 47596,
+            "row": 33,
+            "rowOff": 16932
+          }
+        },
+        "series": [
+          {
+            "title": "Pi0.5",
+            "color": {
+              "kind": "schemeClr",
+              "raw": "accent1",
+              "resolved": "4F81BD"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

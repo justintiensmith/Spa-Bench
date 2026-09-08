@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1750" height="900" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1750 900" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1750" height="900"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-900)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1750" height="900" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="588.7" y="845.48" style="font-family: Helvetica-Bold; font-size: 28px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1690) scale(1,-1)">Failure modes are strongly task-dependent</text>
+			<path d="M 320,805 L 320,205 Z" style="stroke: rgb(84%,84%,84%); stroke-linecap: butt; stroke-width: 1.2;"/>
+			<text x="309.1625" y="167.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,335) scale(1,-1)">0%</text>
+			<path d="M 582,805 L 582,205 Z" style="stroke: rgb(84%,84%,84%); stroke-linecap: butt; stroke-width: 1.2;"/>
+			<text x="566.9925" y="167.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,335) scale(1,-1)">20%</text>
+			<path d="M 844,805 L 844,205 Z" style="stroke: rgb(84%,84%,84%); stroke-linecap: butt; stroke-width: 1.2;"/>
+			<text x="828.9925" y="167.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,335) scale(1,-1)">40%</text>
+			<path d="M 1106,805 L 1106,205 Z" style="stroke: rgb(84%,84%,84%); stroke-linecap: butt; stroke-width: 1.2;"/>
+			<text x="1090.9925" y="167.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,335) scale(1,-1)">60%</text>
+			<path d="M 1368,805 L 1368,205 Z" style="stroke: rgb(84%,84%,84%); stroke-linecap: butt; stroke-width: 1.2;"/>
+			<text x="1352.9925" y="167.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,335) scale(1,-1)">80%</text>
+			<path d="M 1630,805 L 1630,205 Z" style="stroke: rgb(84%,84%,84%); stroke-linecap: butt; stroke-width: 1.2;"/>
+			<text x="1610.8225" y="167.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,335) scale(1,-1)">100%</text>
+			<text x="186.72299999999998" y="749.22" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1498) scale(1,-1)">Physical State</text>
+			<rect x="320" y="727.0" width="1310.0" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(23%,43%,71%); fill-rule: evenodd;"/>
+			<text x="966.66" y="749.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,1499) scale(1,-1)">77</text>
+			<text x="1648" y="749.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1499) scale(1,-1)">n=77</text>
+			<text x="198.062" y="649.22" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1298) scale(1,-1)">Relative Size</text>
+			<rect x="320" y="627.0" width="993.0645161290322" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(23%,43%,71%); fill-rule: evenodd;"/>
+			<text x="808.1922580645161" y="649.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,1299) scale(1,-1)">47</text>
+			<rect x="1313.0645161290322" y="627.0" width="63.38709677419365" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(88%,64%,23%); fill-rule: evenodd;"/>
+			<text x="1340.588064516129" y="649.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1299) scale(1,-1)">3</text>
+			<rect x="1376.4516129032259" y="627.0" width="169.0322580645161" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(60%,43%,69%); fill-rule: evenodd;"/>
+			<text x="1456.7977419354838" y="649.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1299) scale(1,-1)">8</text>
+			<rect x="1545.483870967742" y="627.0" width="84.51612903225805" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(54%,42%,30%); fill-rule: evenodd;"/>
+			<text x="1583.571935483871" y="649.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,1299) scale(1,-1)">4</text>
+			<text x="1648" y="649.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1299) scale(1,-1)">n=62</text>
+			<text x="115.90099999999998" y="549.22" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1098) scale(1,-1)">Referential Description</text>
+			<rect x="320" y="527.0" width="1051.6901408450703" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(23%,43%,71%); fill-rule: evenodd;"/>
+			<text x="837.5050704225351" y="549.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,1099) scale(1,-1)">57</text>
+			<rect x="1371.6901408450703" y="527.0" width="36.90140845070414" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(88%,64%,23%); fill-rule: evenodd;"/>
+			<rect x="1408.5915492957745" y="527.0" width="110.70422535211264" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(60%,43%,69%); fill-rule: evenodd;"/>
+			<text x="1459.7736619718307" y="549.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1099) scale(1,-1)">6</text>
+			<rect x="1519.2957746478871" y="527.0" width="55.35211267605632" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(90%,43%,31%); fill-rule: evenodd;"/>
+			<text x="1542.8018309859153" y="549.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1099) scale(1,-1)">3</text>
+			<rect x="1574.6478873239435" y="527.0" width="55.35211267605632" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(54%,42%,30%); fill-rule: evenodd;"/>
+			<text x="1598.1539436619717" y="549.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,1099) scale(1,-1)">3</text>
+			<text x="1648" y="549.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,1099) scale(1,-1)">n=71</text>
+			<text x="170.692" y="449.22" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,898) scale(1,-1)">Ordinal Position</text>
+			<rect x="320" y="427.0" width="1210.506329113924" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(23%,43%,71%); fill-rule: evenodd;"/>
+			<text x="916.913164556962" y="449.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,899) scale(1,-1)">73</text>
+			<rect x="1530.506329113924" y="427.0" width="49.74683544303798" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(90%,43%,31%); fill-rule: evenodd;"/>
+			<rect x="1580.253164556962" y="427.0" width="33.164556962025245" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(54%,42%,30%); fill-rule: evenodd;"/>
+			<rect x="1613.4177215189873" y="427.0" width="16.582278481012736" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(85%,85%,85%); fill-rule: evenodd;"/>
+			<text x="1648" y="449.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,899) scale(1,-1)">n=79</text>
+			<text x="130.99699999999999" y="349.22" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,698) scale(1,-1)">Relational Placement</text>
+			<rect x="320.0" y="327.0" width="52.39999999999998" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(88%,64%,23%); fill-rule: evenodd;"/>
+			<rect x="372.4" y="327.0" width="917.0000000000001" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,68%,38%); fill-rule: evenodd;"/>
+			<text x="822.56" y="349.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,699) scale(1,-1)">35</text>
+			<rect x="1289.4" y="327.0" width="104.79999999999995" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(60%,43%,69%); fill-rule: evenodd;"/>
+			<text x="1337.63" y="349.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,699) scale(1,-1)">4</text>
+			<rect x="1394.2" y="327.0" width="52.40000000000009" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(90%,43%,31%); fill-rule: evenodd;"/>
+			<rect x="1446.6000000000001" y="327.0" width="52.40000000000009" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(42%,45%,49%); fill-rule: evenodd;"/>
+			<rect x="1499.0000000000002" y="327.0" width="131.0" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(54%,42%,30%); fill-rule: evenodd;"/>
+			<text x="1560.3300000000002" y="349.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,699) scale(1,-1)">5</text>
+			<text x="1648" y="349.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,699) scale(1,-1)">n=50</text>
+			<text x="227.404" y="249.22" style="font-family: Helvetica-Bold; font-size: 17px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,498) scale(1,-1)">Counting</text>
+			<rect x="320.0" y="227.0" width="1205.2" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(88%,64%,23%); fill-rule: evenodd;"/>
+			<text x="910.09" y="249.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,499) scale(1,-1)">138</text>
+			<rect x="1525.2" y="227.0" width="8.733333333333348" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,68%,38%); fill-rule: evenodd;"/>
+			<rect x="1533.9333333333334" y="227.0" width="8.733333333333348" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(60%,43%,69%); fill-rule: evenodd;"/>
+			<rect x="1542.6666666666667" y="227.0" width="87.33333333333326" height="56.0" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 1; fill: rgb(85%,85%,85%); fill-rule: evenodd;"/>
+			<text x="1577.9933333333336" y="249.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,499) scale(1,-1)">10</text>
+			<text x="1648" y="249.9" style="font-family: Helvetica; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,499) scale(1,-1)">n=150</text>
+			<text x="772.4639999999999" y="135.88" style="font-family: Helvetica-Bold; font-size: 18px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,271) scale(1,-1)">Share of failed novel-spatial-grounding rollouts</text>
+			<rect x="55.0" y="101" width="25.0" height="25" style="stroke: rgb(23%,43%,71%); stroke-linecap: butt; stroke-width: 0; fill: rgb(23%,43%,71%); fill-rule: evenodd;"/>
+			<text x="91.0" y="107.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,214) scale(1,-1)">Wrong target</text>
+			<rect x="467.5" y="101" width="25.0" height="25" style="stroke: rgb(88%,64%,23%); stroke-linecap: butt; stroke-width: 0; fill: rgb(88%,64%,23%); fill-rule: evenodd;"/>
+			<text x="503.5" y="107.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,214) scale(1,-1)">No action</text>
+			<rect x="880.0" y="101" width="25.0" height="25" style="stroke: rgb(35%,68%,38%); stroke-linecap: butt; stroke-width: 0; fill: rgb(35%,68%,38%); fill-rule: evenodd;"/>
+			<text x="916.0" y="107.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,214) scale(1,-1)">Correct target, incorrect spatial outcome</text>
+			<rect x="1292.5" y="101" width="25.0" height="25" style="stroke: rgb(60%,43%,69%); stroke-linecap: butt; stroke-width: 0; fill: rgb(60%,43%,69%); fill-rule: evenodd;"/>
+			<text x="1328.5" y="107.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,214) scale(1,-1)">Grasp failure</text>
+			<rect x="55.0" y="59" width="25.0" height="25" style="stroke: rgb(90%,43%,31%); stroke-linecap: butt; stroke-width: 0; fill: rgb(90%,43%,31%); fill-rule: evenodd;"/>
+			<text x="91.0" y="65.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,130) scale(1,-1)">Premature release or dropped object</text>
+			<rect x="467.5" y="59" width="25.0" height="25" style="stroke: rgb(42%,45%,49%); stroke-linecap: butt; stroke-width: 0; fill: rgb(42%,45%,49%); fill-rule: evenodd;"/>
+			<text x="503.5" y="65.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,130) scale(1,-1)">Timeout or incomplete execution</text>
+			<rect x="880.0" y="59" width="25.0" height="25" style="stroke: rgb(54%,42%,30%); stroke-linecap: butt; stroke-width: 0; fill: rgb(54%,42%,30%); fill-rule: evenodd;"/>
+			<text x="916.0" y="65.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,130) scale(1,-1)">Other execution failure</text>
+			<rect x="1292.5" y="59" width="25.0" height="25" style="stroke: rgb(85%,85%,85%); stroke-linecap: butt; stroke-width: 0; fill: rgb(85%,85%,85%); fill-rule: evenodd;"/>
+			<text x="1328.5" y="65.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,130) scale(1,-1)">Unannotated or unclear</text>
+		</g>
+	</g>
+</svg>

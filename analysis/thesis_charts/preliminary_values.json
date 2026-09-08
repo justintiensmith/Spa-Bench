@@ -1,0 +1,1188 @@
+{
+  "Overview": {
+    "shape": [
+      35,
+      11
+    ],
+    "values": [
+      [
+        "Preliminary Experiment Model Comparisons",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Quantitative comparisons extracted from the supplied thesis section and Figures 3.1–3.2. Blank values indicate that no numerical result was reported.",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Key quantitative findings",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Few-shot best model",
+        null,
+        null,
+        "Best dataset-combination model",
+        null,
+        null,
+        "Most damaging tested visual changes",
+        null,
+        null,
+        null,
+        "Camera-position generalization"
+      ],
+      [
+        "ACT\n40% (4/10)",
+        null,
+        null,
+        "Model C\n80% average",
+        null,
+        null,
+        "Mat + lamp and shifted world camera\n10% success",
+        null,
+        null,
+        null,
+        "87.5% within training arc\n0% outside arc"
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model",
+        "Success rate",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Model",
+        "Average success rate",
+        null,
+        null
+      ],
+      [
+        "SmolVLA",
+        0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Model A",
+        0.225,
+        null,
+        null
+      ],
+      [
+        "π0.5",
+        0.3,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Model B",
+        0.65,
+        null,
+        null
+      ],
+      [
+        "ACT",
+        0.4,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Model C",
+        0.8,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Model D",
+        0.5375,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Scope note: the 200-episode experiment and the qualitative descriptions of confidence, jerkiness, hesitation, language grounding, and grasping failures are included on the Notes sheet because the section does not report enough numerical values to chart them.",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    ]
+  },
+  "Few-Shot Comparison": {
+    "shape": [
+      15,
+      5
+    ],
+    "values": [
+      [
+        "Few-Shot Pick-and-Place Comparison",
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Simple pick-and-place task trained with 50 demonstrations; 10 evaluation trials per model.",
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Quantitative results",
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model",
+        "Architecture type",
+        "Successful trials",
+        "Total trials",
+        "Success rate"
+      ],
+      [
+        "SmolVLA",
+        "VLA",
+        0,
+        10,
+        0
+      ],
+      [
+        "π0.5",
+        "VLA",
+        3,
+        10,
+        0.3
+      ],
+      [
+        "ACT",
+        "Behavioral cloning",
+        4,
+        10,
+        0.4
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Interpretation reported in the thesis: ACT performed best in this small experiment despite not being a VLA, suggesting that demonstration quality and consistency may matter as much as architecture choice.",
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model",
+        "Qualitative observation",
+        null,
+        null,
+        null
+      ],
+      [
+        "SmolVLA",
+        "Often produced jerky movements.",
+        null,
+        null,
+        null
+      ],
+      [
+        "π0.5",
+        "More confident execution and stronger apparent language grounding.",
+        null,
+        null,
+        null
+      ],
+      [
+        "ACT",
+        "Tended to be hesitant.",
+        null,
+        null,
+        null
+      ]
+    ]
+  },
+  "Dataset Strategy": {
+    "shape": [
+      23,
+      12
+    ],
+    "values": [
+      [
+        "π0.5 Dataset-Combination Experiment",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model A: constrained only; Model B: diverse only; Model C: union; Model D: constrained pretraining followed by fine-tuning on the union.",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Success rates and successful-trial completion times",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model",
+        "Training strategy",
+        "Constrained success",
+        "Constrained time (s)",
+        "Spatial success",
+        "Spatial time (s)",
+        "Distractor success",
+        "Distractor time (s)",
+        "OOD success",
+        "OOD time (s)",
+        "Average success",
+        "Average time (s)"
+      ],
+      [
+        "Model A",
+        "10 cm square dataset only",
+        0.9,
+        23.8,
+        0,
+        null,
+        0,
+        null,
+        0,
+        null,
+        0.225,
+        23.8
+      ],
+      [
+        "Model B",
+        "Diverse dataset only",
+        0.8,
+        24,
+        0.6,
+        28.8,
+        0.5,
+        26.5,
+        0.7,
+        28.9,
+        0.6499999999999999,
+        27.049999999999997
+      ],
+      [
+        "Model C",
+        "Union of both datasets",
+        1,
+        24.2,
+        0.7,
+        30.4,
+        0.8,
+        27.8,
+        0.7,
+        24.8,
+        0.8,
+        26.799999999999997
+      ],
+      [
+        "Model D",
+        "Constrained, then union FT",
+        0.9,
+        32.1,
+        0.5,
+        28.4,
+        0.25,
+        27.3,
+        0.5,
+        29.5,
+        0.5375,
+        29.325
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model",
+        "Constrained",
+        "Spatial",
+        "Distractor",
+        "OOD",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model A",
+        0.9,
+        0,
+        0,
+        0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model B",
+        0.8,
+        0.6,
+        0.5,
+        0.7,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model C",
+        1,
+        0.7,
+        0.8,
+        0.7,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model D",
+        0.9,
+        0.5,
+        0.25,
+        0.5,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model",
+        "Average success",
+        "Average time (s)",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model A",
+        0.225,
+        23.8,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model B",
+        0.6499999999999999,
+        27.049999999999997,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model C",
+        0.8,
+        26.799999999999997,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Model D",
+        0.5375,
+        29.325,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    ]
+  },
+  "Environmental Ablations": {
+    "shape": [
+      18,
+      4
+    ],
+    "values": [
+      [
+        "π0.5 Environmental Perturbation Results",
+        null,
+        null,
+        null
+      ],
+      [
+        "Success rates under visual and hardware changes inspired by the Colosseum benchmark.",
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Ablation results",
+        null,
+        null,
+        null
+      ],
+      [
+        "Condition",
+        "Success rate",
+        "Drop vs normal",
+        "Evaluation note"
+      ],
+      [
+        "Normal conditions",
+        1,
+        0,
+        "Baseline"
+      ],
+      [
+        "Lamp",
+        1,
+        0,
+        null
+      ],
+      [
+        "Grey mat",
+        1,
+        0,
+        null
+      ],
+      [
+        "No wrist camera",
+        0.4,
+        0.6,
+        null
+      ],
+      [
+        "Orange arm",
+        0.6,
+        0.4,
+        null
+      ],
+      [
+        "Mat + lamp",
+        0.1,
+        0.9,
+        null
+      ],
+      [
+        "Paper cup",
+        null,
+        null,
+        "Not evaluated / no percentage reported"
+      ],
+      [
+        "Lamp + disco light",
+        0.8,
+        0.19999999999999996,
+        null
+      ],
+      [
+        "Shifted world camera",
+        0.1,
+        0.9,
+        null
+      ],
+      [
+        "Greyscale images",
+        null,
+        null,
+        "Not evaluated / no percentage reported"
+      ],
+      [
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Main reported result: shifting the world camera reduced success from 100% to 10%, tying the combined mat-and-lamp change for the largest measured degradation. Lamp-only and grey-mat-only changes retained 100% success.",
+        null,
+        null,
+        null
+      ]
+    ]
+  },
+  "Camera Robustness": {
+    "shape": [
+      10,
+      5
+    ],
+    "values": [
+      [
+        "Camera-Position Generalization",
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Informal follow-up experiment using 105 demonstrations: 35 episodes at each of three camera positions along an arc.",
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Informal evaluation results",
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Evaluation region",
+        "Successful trials",
+        "Total trials",
+        "Success rate",
+        "Interpretation"
+      ],
+      [
+        "Within the training arc",
+        7,
+        8,
+        0.875,
+        "Robust to tested viewpoints represented within the training distribution."
+      ],
+      [
+        "Outside the training arc",
+        0,
+        2,
+        0,
+        "Failed in both trials beyond the represented viewpoint range."
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Caution: the thesis explicitly describes this as an informal, non-rigorous test because the evaluation sample was small (8 trials within the arc and 2 outside it).",
+        null,
+        null,
+        null,
+        null
+      ]
+    ]
+  },
+  "Notes": {
+    "shape": [
+      13,
+      4
+    ],
+    "values": [
+      [
+        "Unquantified Comparisons and Workbook Assumptions",
+        null,
+        null,
+        null
+      ],
+      [
+        "This sheet records thesis statements that cannot be represented faithfully as quantitative bar charts.",
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Experiment / topic",
+        "Reported comparison or observation",
+        "Why not charted",
+        "Workbook treatment"
+      ],
+      [
+        "Early 200-episode dataset",
+        "Increasing the dataset size helped, but grasping remained the dominant failure mode; placement usually succeeded after a grasp.",
+        "No exact model-specific success rates were reported.",
+        "Recorded here as a qualitative finding."
+      ],
+      [
+        "Language grounding",
+        "π0.5 appeared better than ACT and SmolVLA at colour-conditioned object selection and novel colour prompts.",
+        "No trial counts or success percentages were reported for this comparison.",
+        "Recorded here as a qualitative finding."
+      ],
+      [
+        "Execution style",
+        "π0.5 was more confident, SmolVLA was often jerky, and ACT tended to be hesitant.",
+        "The comparison is descriptive rather than numerical.",
+        "Also summarized on the Few-Shot sheet."
+      ],
+      [
+        "Grasping consistency",
+        "Approaching from above, from the side, or pushing the object before grasping likely introduced strategy inconsistency.",
+        "No numerical effect size was reported.",
+        "Recorded here as dataset-design context."
+      ],
+      [
+        "Recovery starts",
+        "Both 100-episode consistency datasets used 20% non-home or recovery starts.",
+        "This is a dataset characteristic, not an evaluated model outcome.",
+        "Included in the dataset-strategy subtitle and notes."
+      ],
+      [
+        "Environmental figure",
+        "Paper cup and greyscale images were displayed as '-%' in Figure 3.2.",
+        "The figure provides no numerical value.",
+        "Entered as blank / not evaluated so charts do not treat the entries as 0%."
+      ],
+      [
+        "Average success rounding",
+        "Figure 3.1 reports 23%, 65%, 80%, and 54% for Models A–D.",
+        "The exact arithmetic means are 22.5%, 65%, 80%, and 53.75%.",
+        "Workbook formulas retain exact values; Excel display rounds to whole percentages."
+      ],
+      [
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "Source: user-supplied thesis text and screenshots of Figures 3.1 and 3.2. No external sources were used.",
+        null,
+        null,
+        null
+      ]
+    ]
+  }
+}

@@ -1,0 +1,267 @@
+From 88d519ec5872020cac210aa2d7c6b161cc3a0afe Mon Sep 17 00:00:00 2001
+From: Justin Tien-Smith <justintiensmith@Justins-MacBook-Pro-2.local>
+Date: Sat, 8 Aug 2026 14:40:10 +0100
+Subject: [PATCH 2/2] docs: add VLA-0 rollout setup guide
+
+---
+ README.md            | 217 +++++++++++++++++++++++++++++++++++++++++++
+ docs/source/vla0.mdx |  11 +--
+ 2 files changed, 222 insertions(+), 6 deletions(-)
+
+diff --git a/README.md b/README.md
+index 53d92f96..0541dfd3 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,220 @@
++# LeRobot Rollout for VLA-0
++
++This fork adds a LeRobot policy adapter for the HTTP inference service in
++[`mattpidden/vla0`](https://github.com/mattpidden/vla0). It lets VLA-0 control an SO-101 through
++`lerobot-rollout`, including recorded episodic evaluations and a different language prompt for every
++episode from a CSV file.
++
++The two projects run in separate environments:
++
++- **Terminal 1 — VLA-0 server:** loads the checkpoint and runs inference on the GPU.
++- **Terminal 2 — this repository:** reads the cameras, sends observations to the server, controls the
++  SO-101, records episodes, and uploads the resulting dataset to Hugging Face.
++
++This repository does **not** contain the VLA-0 model code or a checkpoint. Keep a separate checkout of
++Matt's VLA-0 repository for Terminal 1.
++
++## Install the LeRobot client
++
++The commands below create an isolated Python 3.12 environment and install the SO-101 and RealSense
++dependencies. Replace the clone URL only if you are installing from another fork.
++
++```bash
++git clone https://github.com/justintiensmith/lerobot_rollout_vla0.git
++cd lerobot_rollout_vla0
++
++conda create -n lerobot_rollout_vla0 python=3.12 -y
++conda activate lerobot_rollout_vla0
++
++python -m pip install uv
++uv pip install --python "$CONDA_PREFIX/bin/python" -e ".[feetech,intelrealsense]"
++```
++
++Verify the hardware dependencies and the installation:
++
++```bash
++python -c "import scservo_sdk, pyrealsense2; print('Feetech and RealSense imports OK')"
++python -m pip check
++lerobot-rollout --help
++```
++
++Log in once if rollouts will be uploaded to Hugging Face:
++
++```bash
++hf auth login
++hf auth whoami
++```
++
++## Terminal 1: start VLA-0
++
++Install [`mattpidden/vla0`](https://github.com/mattpidden/vla0) in its own environment by following
++that repository's README. Do not install its dependencies into `lerobot_rollout_vla0`.
++
++Then start the VLA-0 service from the VLA-0 repository, using the checkpoint you want to evaluate:
++
++```bash
++conda activate vla0
++export PYTHONNOUSERSITE=1
++cd /path/to/vla0
++
++export ROBOVERSE_DEPLOY_CHECKPOINT=/path/to/model_last.pth
++python rv_train/deploy/service.py
++```
++
++The service listens on port `10000` by default. Leave it running and confirm that it is ready:
++
++```bash
++curl http://127.0.0.1:10000/health
++```
++
++## Terminal 2: test one unrecorded rollout
++
++Activate the client environment and enter this repository:
++
++```bash
++conda activate lerobot_rollout_vla0
++cd /path/to/lerobot_rollout_vla0
++```
++
++This is the configuration tested on Hippasus. Camera indices are machine-specific, so check them with
++`lerobot-find-cameras opencv` and change `0` or `12` if necessary. Camera names and their order must
++match VLA-0 training: `wrist` first and `middle` second.
++
++```bash
++lerobot-rollout \
++  --strategy.type=base \
++  --inference.type=sync \
++  --policy.type=vla0 \
++  --policy.server_url=http://127.0.0.1:10000 \
++  --policy.n_action_steps=4 \
++  --robot.type=so101_follower \
++  --robot.port=/dev/ttyACM0 \
++  --robot.id=blue_follower \
++  --robot.use_degrees=true \
++  --robot.cameras='{
++    wrist: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30, fourcc: MJPG},
++    middle: {type: opencv, index_or_path: 12, width: 640, height: 480, fps: 30}
++  }' \
++  --task="Push the apple to the block." \
++  --fps=10 \
++  --duration=0 \
++  --device=cuda
++```
++
++No `--policy.path` is needed: the checkpoint is loaded by the server. `policy.n_action_steps` is the
++number of actions consumed from each returned chunk before requesting another chunk.
++
++## Record and upload episodes
++
++Use the episodic strategy to save LeRobot episodes and upload them when the session exits normally.
++The following example records ten 60-second episodes with a 60-second reset period:
++
++```bash
++lerobot-rollout \
++  --strategy.type=episodic \
++  --inference.type=sync \
++  --policy.type=vla0 \
++  --policy.server_url=http://127.0.0.1:10000 \
++  --policy.n_action_steps=4 \
++  --robot.type=so101_follower \
++  --robot.port=/dev/ttyACM0 \
++  --robot.id=blue_follower \
++  --robot.use_degrees=true \
++  --robot.cameras='{
++    wrist: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30, fourcc: MJPG},
++    middle: {type: opencv, index_or_path: 12, width: 640, height: 480, fps: 30}
++  }' \
++  --task="Push the apple to the block." \
++  --fps=10 \
++  --dataset.repo_id=justintiensmith/rollout_vla0_test \
++  --dataset.root=/path/to/datasets/rollout_vla0_test \
++  --dataset.num_episodes=10 \
++  --dataset.episode_time_s=60 \
++  --dataset.reset_time_s=60 \
++  --dataset.video=true \
++  --dataset.push_to_hub=true \
++  --dataset.private=false \
++  --device=cuda
++```
++
++For a fresh recording, LeRobot adds a timestamp to the supplied dataset name so an existing Hub
++dataset is not overwritten. The startup log prints the final repository ID and local root. Use that
++exact stamped ID and root together with `--resume=true` to continue an interrupted run.
++
++Episodic keyboard controls are:
++
++- **Right arrow:** finish the current episode or reset period early.
++- **Left arrow:** discard the current episode and record it again.
++- **Escape:** finish the session, finalize the dataset, and upload it.
++
++## Evaluate prompts from a CSV
++
++The CSV must contain a `Prompt` column. The other mapped columns are used for operator-facing logging
++and may be named on the command line. Each saved dataset episode advances to the next selected CSV
++row; discarding an episode reuses its prompt, and resuming a dataset continues from the next unsaved
++row.
++
++This example matches `Eval_Ordinal_Reference_Ordering.csv`:
++
++```bash
++lerobot-rollout \
++  --strategy.type=episodic \
++  --strategy.prompt_file="$HOME/Downloads/Eval_Ordinal_Reference_Ordering.csv" \
++  --strategy.prompt_column=Prompt \
++  --strategy.episode_column=Episode \
++  --strategy.scene_column="Scene Setup (P1-P4)" \
++  --strategy.condition_column=Condition \
++  --strategy.start_row=0 \
++  --strategy.num_rows=130 \
++  --inference.type=sync \
++  --policy.type=vla0 \
++  --policy.server_url=http://127.0.0.1:10000 \
++  --policy.n_action_steps=4 \
++  --robot.type=so101_follower \
++  --robot.port=/dev/ttyACM0 \
++  --robot.id=blue_follower \
++  --robot.use_degrees=true \
++  --robot.cameras='{
++    wrist: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30, fourcc: MJPG},
++    middle: {type: opencv, index_or_path: 12, width: 640, height: 480, fps: 30}
++  }' \
++  --teleop.type=so101_leader \
++  --teleop.port=/dev/ttyACM1 \
++  --teleop.id=blue_leader \
++  --fps=10 \
++  --dataset.repo_id=justintiensmith/rollout_vla0_ordinal_reference_ordering \
++  --dataset.root=/path/to/datasets/rollout_vla0_ordinal_reference_ordering \
++  --dataset.num_episodes=130 \
++  --dataset.episode_time_s=60 \
++  --dataset.reset_time_s=60 \
++  --dataset.video=true \
++  --dataset.push_to_hub=true \
++  --dataset.private=false \
++  --device=cuda
++```
++
++`dataset.num_episodes` is the target total when a prompt CSV is used. To resume, replace the dataset
++repository ID and root with the exact values printed when the dataset was created, then add
++`--resume=true`.
++
++## Troubleshooting
++
++- `feetech-servo-sdk is required`: rerun `uv pip install -e ".[feetech,intelrealsense]"` in the
++  client environment.
++- `/health` fails: the VLA-0 service is not running, is using another port, or crashed while loading
++  its checkpoint.
++- The arm hardly moves: first confirm the exact prompt punctuation and both trained camera views.
++  Also inspect the action chunks printed by the VLA-0 server; this adapter sends the returned absolute
++  six-joint targets without converting them into relative actions.
++- The wrong camera opens: use stable `/dev/v4l/by-id/...` paths or rerun `lerobot-find-cameras
++  opencv` after reconnecting cameras.
++
++For implementation details, see [the VLA-0 adapter documentation](docs/source/vla0.mdx).
++
++---
++
++## Upstream LeRobot README
++
+ <p align="center">
+   <img alt="LeRobot, Hugging Face Robotics Library" src="./media/readme/lerobot-logo-thumbnail.png" width="100%">
+ </p>
+diff --git a/docs/source/vla0.mdx b/docs/source/vla0.mdx
+index 454c59be..9abdc10b 100644
+--- a/docs/source/vla0.mdx
++++ b/docs/source/vla0.mdx
+@@ -32,14 +32,13 @@ uv run lerobot-rollout \
+     --policy.server_url=http://127.0.0.1:10000 \
+     --policy.n_action_steps=4 \
+     --robot.type=so101_follower \
+-    --robot.port=/dev/ttyACM1 \
++    --robot.port=/dev/ttyACM0 \
+     --robot.id=blue_follower \
+     --robot.use_degrees=true \
+-    --robot.max_relative_target=5 \
+-    --robot.cameras="{wrist: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30}, middle: {type: opencv, index_or_path: 12, width: 640, height: 480, fps: 30}}" \
+-    --task="Pick up the juggling ball and place it in the bowl." \
++    --robot.cameras="{wrist: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30, fourcc: MJPG}, middle: {type: opencv, index_or_path: 12, width: 640, height: 480, fps: 30}}" \
++    --task="Push the apple to the block." \
+     --fps=10 \
+-    --duration=60
++    --duration=0
+ ```
+ 
+ No `--policy.path` is needed because the checkpoint is loaded by the server. `policy.n_action_steps` controls how many returned actions are executed before requesting a new chunk.
+@@ -64,4 +63,4 @@ The synchronous backend pauses the control loop while VLA-0 generates each chunk
+ | `policy.request_timeout_s` | `300` | Inference request timeout |
+ | `policy.check_server_on_load` | `true` | Check `/health` before connecting the robot |
+ 
+-Keep `robot.use_degrees=true`: the fork's real-world data and client represent SO-101 state and actions in degrees. Keep a conservative `robot.max_relative_target` during initial tests, begin with a short `duration`, and be ready to stop the robot.
++Keep `robot.use_degrees=true`: the fork's real-world data and client represent SO-101 state and actions in degrees. The service returns absolute six-joint targets, so the tested configuration does not set `robot.max_relative_target`.
+-- 
+2.39.5 (Apple Git-154)
+

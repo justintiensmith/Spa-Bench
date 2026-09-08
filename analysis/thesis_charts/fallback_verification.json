@@ -1,0 +1,28 @@
+{
+  "output": "/Users/justintiensmith/Documents/lerobot/outputs/01a0678e-4e7e-7a31-b018-7fba72ab9fe5/MSc_Thesis_Bar_Charts_Verified_with_CIs.xlsx",
+  "protected_sheets_unchanged": {
+    "Preliminary Task Results": true,
+    "Pi0.5 Robustness": true,
+    "Paraphrasing Comparison v2": true,
+    " Paraphrasing Comparison v1": true
+  },
+  "chart_count": 15,
+  "failure_sheets": {
+    "Failure Analysis - Novel": {
+      "rows": 13,
+      "charts": 1
+    },
+    "Failure Analysis - All": {
+      "rows": 14,
+      "charts": 1
+    }
+  },
+  "corrected_cells": {
+    "Familiar Spatial Task Chart!C2": 0.35,
+    "Familiar Spatial Task Chart!R2": 20,
+    "Familiar Spatial Task Chart!F6": 0.85,
+    "Cross Task Object Chart v2!D2": 0.7,
+    "Paraphrasing Comparison v3!C3": 0.8833333333333333,
+    "Sheet2!D8": 88
+  }
+}

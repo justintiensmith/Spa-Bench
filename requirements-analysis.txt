@@ -1,0 +1,11 @@
+huggingface-hub
+numpy
+openpyxl
+pandas
+Pillow
+pyarrow
+reportlab
+
+# Dataset preprocessing also imports LeRobot. Install the pinned Spa-Bench fork
+# documented in software/lerobot_vla0/README.md when reproducing that stage.
+

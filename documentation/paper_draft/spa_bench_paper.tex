@@ -1,0 +1,472 @@
+\documentclass[conference]{IEEEtran}
+
+\IEEEoverridecommandlockouts % Required for \thanks and \IEEEaftertitletext
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{capt-of} % Provides \captionof without replacing IEEE captions
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+\usepackage{url}
+\usepackage{tabularx}
+
+% 1. Define your custom colors here
+\colorlet{ObservedCell}{green!30}
+\colorlet{HeldOutCell}{orange!30}
+
+% 2. Define the 'cell' style if you haven't already
+\tikzset{
+    cell/.style={minimum width=2cm, minimum height=1cm, anchor=center}
+}
+
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{matrix,positioning}
+
+\title{Spa-Bench: A Real-Robot Benchmark for Spatial Grounding
+in Vision-Language-Action Models}
+
+\author{Anonymous Authors}
+
+% \author{
+% \IEEEauthorblockN{
+% Justin Tien-Smith$^*$ \quad
+% Matthew Pidden$^*$ \quad
+% Rolandos Potamias$^\dagger$
+% }
+% \IEEEauthorblockA{
+% Imperial College London
+% }
+% \thanks{$^*$Equal contribution. $^\dagger$Advising author.}
+% }
+
+\IEEEaftertitletext{%
+\begin{minipage}{\textwidth}
+
+% Center only the image
+{\centering
+\includegraphics[
+    width=\textwidth,
+    height=0.40\textheight,
+    keepaspectratio
+]{Figures/teaser.png}
+\par}
+
+% Caption returns to normal IEEE left-justified formatting
+\captionof{figure}{
+\textbf{Overview of Spa-Bench.} Six real-robot task families evaluate grounding of physical states, relative sizes, referential descriptions, relational placements, ordinal positions, and counts. Policies are tested in familiar and novel spatial configurations, together with direct manipulation instructions,  paraphrased instructions, cross-task objects, and no-intervention controls. Across the three fully evaluated policies, aggregate success exhibits a clear performance hierarchy: policies perform best under direct manipulation instructions, moderately well in familiar spatial configurations, and poorest in novel spatial configurations.}
+\label{fig:teaser}
+\end{minipage}
+\vspace{0.5\baselineskip}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Vision-language-action models (VLAs) offer a promising route toward general-purpose robotics by transferring semantic knowledge from large-scale vision-language pretraining into language-conditioned control. However, most VLA evaluations emphasize aggregate manipulation success under changes in objects, instructions, or environments, leaving unclear how reliably these policies ground spatial descriptions in the physical scenes where they act. We therefore ask: How reliably can current VLAs translate spatial descriptions into appropriate real-robot behavior? To investigate this question, we introduce Spa-Bench, a real-robot benchmark that evaluates spatial grounding across six tabletop task families covering physical states, relative sizes, referential descriptions, relational placements, ordinal positions, and counts. Policies are evaluated in both familiar and novel spatial configurations. The novel configurations preserve familiarity with the relevant objects, spatial concepts, and manipulation behaviors, enabling failures to be attributed more specifically to spatial grounding. Direct manipulation, paraphrased instruction, cross-task-object, and no-intervention evaluations provide additional diagnostic controls. We release 4,092 episodes collected on the low-cost SO-101 robot arm: 1,200 human-teleoperated demonstrations and 2,892 real-robot evaluation rollouts from five adapted VLA policies. Across the three policies that complete the full evaluation protocol, success ranges from 67.5\% to 72.5\% in familiar configurations but decreases to 40.7\%--52.0\% in novel configurations, while direct manipulation success reaches 81.7\%--89.2\%. The direct manipulation advantage persists under prompt paraphrasing, and every fully evaluated policy fails all novel Counting trials. These results indicate that current VLAs exhibit useful but brittle spatial grounding that varies substantially across tasks and does not reliably generalize to novel physical configurations.
+\end{abstract}
+
+\begin{IEEEkeywords}
+vision-language-action models, robot learning, spatial grounding, robot evaluation, Spa-Benching
+\end{IEEEkeywords}
+
+
+\section{Introduction}
+
+Vision-language-action models (VLAs) have emerged as a promising approach to general-purpose robot learning. By connecting pretrained vision-language representations to robot actions, these models can transfer semantic knowledge acquired from Internet-scale data into language-conditioned control \cite{brohan2023rt2,black2025pi05,nvidia2025gr00t,fang2026molmoact2}. This transfer promises robots that can respond to new objects, instructions, and environments without requiring a separately trained policy for every behavior.
+
+Existing evaluations have demonstrated increasingly broad manipulation capabilities, including generalization across objects, instructions, visual conditions, and task sequences \cite{zhang2024vlabench,zhou2025liberopro,gao2026stargen}. Nevertheless, completing a manipulation task does not by itself establish that a policy has correctly interpreted the spatial structure of its environment. Spatial understanding is typically embedded within an overall task-success metric and is consequently entangled with object recognition, language interpretation, and motor execution. If a policy fails to place a green pen to the left of a red block, for example, the failure could arise from incorrect spatial grounding, failure to identify the objects, an unsuccessful grasp, or an inability to execute the required placement. Conversely, success in a fixed scene may result from recurring object locations or action patterns rather than from grounding the instructed spatial relation.
+
+In this work, we use \emph{spatial grounding} to describe the ability to map language about properties, positions, quantities, and relations in the current physical scene to an appropriate target, goal configuration, or decision not to act. We study this capability through the following question:
+
+\begin{quote}
+\emph{How reliably can current VLAs ground spatial descriptions into appropriate actions on a real robot?}
+\end{quote}
+
+Answering this question requires more than measuring success on an ordinary held-out task. A test task that simultaneously introduces an unfamiliar object, instruction, spatial concept, and physical behavior cannot reveal which of these changes caused a failure. A diagnostic spatial benchmark should instead establish familiarity with the constituent objects, concepts, and manipulation behaviors before evaluating whether the policy can use the relevant spatial information in a different physical configuration.
+
+We introduce the \emph{Spatial Grounding Benchmark} (Spa-Bench), a controlled real-robot benchmark designed around this principle. Spa-Bench comprises six tabletop tasks evaluating the grounding of physical-state, relative-size, relational placements, referential descriptions, ordinal positions, and counts. All tasks use the same SO-101 robot, workspace, receptacle, and broad pick-and-place action family. The principal source of variation is therefore the scene-grounded rule that determines which object should be manipulated, where it should be placed, or whether movement is even required.
+
+Spa-Bench evaluates policies in familiar and novel spatial configurations. Familiar configurations measure whether a policy has acquired the spatially grounded behaviors represented in its demonstrations. Novel configurations change the association between a spatial concept and its task argument while preserving training support for the relevant objects, spatial concepts, and physical actions. We implement this controlled split through a missing-cell design: each component of a novel evaluation configuration appears elsewhere in training, but their particular combination is reserved for evaluation. The purpose of this construction is to reduce object and motor unfamiliarity as alternative explanations for failure.
+
+The benchmark also includes four diagnostic evaluations. Direct manipulation instructions directly request the same physical behavior without requiring the target spatial instruction, helping distinguish spatial-grounding failures from execution failures. Prompt paraphrases test sensitivity to instruction wording. Cross-task-object trials examine whether policies depend on task-specific associations between objects and instructions. Finally, no-intervention trials evaluate whether policies can recognize when a requested spatial condition already holds and refrain from acting.
+
+Spa-Bench contains 1,200 human-teleoperated demonstrations, with 200 demonstrations for each task family. We adapt five policies drawn from four VLA families: VLA-0, MolmoAct2, $\pi_{0.5}$, GR00T Frozen LLM, and GR00T Full Fine-Tune. Three policies complete the full 900-rollout evaluation protocol, producing 2,700 evaluation episodes, while two partial baselines contribute 192 episodes. In total, we release 4,092 SO-101 episodes, including the demonstrations, rollout videos, task specifications, and documented scene layouts.
+
+Across the three fully evaluated policies, familiar spatial configuration success ranges from 67.5\% to 72.5\%, but success decreases to 40.7\%--52.0\% in novel spatial configurations. In comparison, direct manipulation instructions achieve 81.7\%--89.2\% success, showing that many of the physical behaviors are executable even when spatially conditioned performance fails. Performance is strongly task dependent: all three policies fail every novel Counting trial, while several other spatial concepts transfer more successfully. The direct manipulation advantage also persists when both instruction types are paraphrased, indicating that exact wording alone does not explain the spatial-grounding failures. Overall, these results reveal useful but incomplete spatial grounding in current VLAs.
+
+Our contributions are:
+
+\begin{itemize}
+    \item We introduce Spa-Bench, a six-family real-robot benchmark for evaluating spatial grounding across familiar and novel physical configurations.
+
+    \item We develop a controlled evaluation protocol that combines a missing-cell split with direct manipulation, prompt-paraphrase, cross-task-object, and no-intervention diagnostics to separate spatial-grounding failures from important alternative explanations.
+
+    \item We evaluate five adapted VLA policies and release 4,092 SO-101 episodes---1,200 human-teleoperated demonstrations and 2,892 evaluation rollouts---together with task specifications and scene layouts.
+\end{itemize}
+
+\section{Related Work}
+
+\subsection{Vision-Language-Action Models}
+
+Vision-language-action models (VLAs) connect pretrained multimodal representations to robot actions with the goal of transferring semantic and visual knowledge into closed-loop control. RT-2 helped establish this formulation by representing actions as tokens and co-fine-tuning a vision-language model on web and robot data, demonstrating transfer to novel objects, instructions, and semantically specified behaviors \cite{brohan2023rt2}. OpenVLA subsequently introduced an open-source 7-billion-parameter VLA trained on large-scale robot data and designed for adaptation to downstream embodiments \cite{kim2024openvla}. In parallel, $\pi_0$ coupled a pretrained vision-language backbone to a flow-matching action expert for generating continuous action chunks across multiple embodiments \cite{black2024pi0}.
+
+More recent VLAs have targeted open-world generalization, heterogeneous robot data, embodied reasoning, and practical deployment. $\pi_{0.5}$ extends $\pi_0$ through heterogeneous co-training on robot trajectories, verbal instructions, semantic predictions, and web data \cite{black2025pi05}. The GR00T family uses a dual-system architecture in which a vision-language module interprets the scene and instruction while a diffusion transformer produces continuous actions \cite{nvidia2025gr00t}. VLA-0 investigates whether continuous actions can instead be generated directly as numerical text without introducing a specialized action vocabulary or action head \cite{goyal2025vla0}. MolmoAct2 connects an embodied-reasoning vision-language model to a flow-matching continuous-action expert \cite{fang2026molmoact2}. Because these systems differ in pretraining data, objectives, action representations, and adaptation procedures, Spa-Bench does not isolate architectural components to compare models against one another. Instead, it evaluates each fully adapted policy across a diverse set of environmental conditions to measure how robustly individual models generalize when faced with scene-grounded variations.
+
+\subsection{Simulation and Reasoning Benchmarks}
+
+Simulation benchmarks have enabled scalable evaluation of language-conditioned robot behavior. RLBench provides a broad collection of vision-guided manipulation tasks and automatically generated demonstrations \cite{james2019rlbench}, while ALFRED evaluates grounded instruction following over compositional household activities \cite{shridhar2019alfred}. LIBERO studies declarative and procedural knowledge transfer across lifelong-learning task suites \cite{liu2023libero}. RoboCasa expands language-conditioned manipulation to diverse household activities in simulated kitchens \cite{nasiriany2024robocasa}, and BEHAVIOR-1K targets long-horizon everyday activities involving physical and semantic state changes \cite{li2024behavior1k}. VLABench further evaluates semantic knowledge, spatial relationships, physical understanding, and long-horizon reasoning across numerous tasks and objects \cite{zhang2024vlabench}. These benchmarks establish task breadth and scalable evaluation, but spatial grounding is generally one component of overall task success and therefore remains entangled with perception, planning, and execution.
+
+A complementary line of work examines whether policy performance persists under controlled distribution shifts. The COLOSSEUM evaluates manipulation policies under systematic visual and physical perturbations \cite{pumacay2024colosseum}, while LIBERO-PRO varies manipulated objects, initial states, instructions, and environments, revealing that strong standard-benchmark performance can depend on memorized layouts and action sequences \cite{zhou2025liberopro}. STAR-Gen organizes generalization along visual, semantic, and behavioral axes \cite{gao2026stargen}. BeTTER applies targeted interventions, including spatial-layout shifts, together with kinematic isolation intended to separate reasoning failures from execution limitations \cite{xu2026better}. Other benchmarks evaluate reasoning without requiring closed-loop physical execution. ManipBench probes low-level manipulation reasoning in vision-language models \cite{zhao2025manipbench}, whereas MultihopSpatial evaluates compositional spatial inference and visual grounding over multi-hop relationships \cite{lee2026multihopspatial}. These evaluations provide fine-grained measures of reasoning, but correct visual or textual answers do not necessarily establish that the inferred relation can guide real-robot behavior.
+
+\subsection{Real-World Robot Evaluation}
+
+Real-world benchmarks address the complementary challenges of physical validity, reproducibility, and evaluation at scale. REALM evaluates manipulation policies under controlled perturbations in simulation and validates the resulting trends through physical experiments \cite{sedlacek2025realm}. RoboChallenge provides infrastructure for evaluating embodied policies across multiple real robots and manipulation tasks \cite{yakefu2025robochallenge}. RADAR focuses on real-world dynamics and spatial-physical intelligence while using automated three-dimensional success metrics \cite{chen2026radar}. ManipArena combines diverse real-robot tasks with controlled out-of-distribution conditions and a large collection of expert trajectories \cite{sun2026maniparena}. VLA-REPLICA instead emphasizes low-cost cross-laboratory reproducibility through standardized hardware and evaluation on the SO-101 platform \cite{huang2026vlareplica}.
+
+Spa-Bench complements these efforts by focusing specifically on spatial grounding under closed-loop real-robot execution. Rather than maximizing task or embodiment breadth, Spa-Bench constrains the robot, workspace, object inventory, and broad manipulation behavior while varying the scene-grounded rule that determines the appropriate action. Its controlled familiar and novel configurations preserve exposure to the relevant objects, spatial concepts, and physical behaviors. Direct manipulation, prompt-paraphrase, cross-task-object, and no-intervention evaluations then probe whether failures are associated with spatial interpretation, exact wording, object-role changes, physical execution, or a default tendency to act. Spa-Bench therefore provides a targeted diagnostic of whether current VLAs can use spatial descriptions reliably in the physical scenes where they operate.
+
+\section{Spa-Bench Design}
+\label{sec:spa_bench_design}
+
+\subsection{Task Suite}
+
+Spa-Bench evaluates whether a robot policy can ground spatial descriptions in the current physical scene and translate them into an appropriate action. The benchmark contains six tabletop task families spanning three forms of spatial grounding: attributes, relations, and scene structure. The Physical State and Relative Size tasks require selecting an object according to a visually grounded attribute. The Relational Placement and Referential Description tasks require interpreting directed or object-relative spatial relations. The Ordinal Position and Counting tasks require reasoning about the organization of the scene as a whole.
+
+All six task families use the same SO-101 robot embodiment, workspace, receptacle, and broad pick-and-place action family. The primary source of variation is therefore the scene-grounded rule that determines which object should be manipulated, where it should be placed, or whether an action is necessary. Counting and Relational Placement can require either manipulation or no intervention, depending on whether the requested count or spatial relation already holds. Holding the embodiment and broad manipulation behavior approximately constant reduces the extent to which performance differences can be attributed to entirely different motor skills.
+
+All directional and ordinal descriptions are defined from the robot's perspective. For example, \emph{left}, \emph{right}, \emph{front}, and \emph{behind} refer to directions in the robot's workspace rather than directions relative to an individual camera view. Table~\ref{tab:task_overview} summarizes the six task families and their success criteria.
+
+\begin{table*}[t]
+\caption{Spa-Bench task families. All tasks use the same robot, workspace, receptacle, and broad pick-and-place behavior while varying the spatial information needed to determine the correct response.}
+\label{tab:task_overview}
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{2.6cm}p{2.5cm}p{5.3cm}p{5.8cm}}
+\toprule
+\textbf{Task} &
+\textbf{Grounding type} &
+\textbf{Example instruction} &
+\textbf{Success criterion} \\
+\midrule
+
+Physical States &
+Attribute &
+``Place the closed white cup in the bowl.'' &
+The same-category object whose physical state matches the instruction is placed in the bowl. \\
+
+Relative Sizes &
+Attribute &
+``Place the smallest object in the bowl.'' &
+The object satisfying the requested relative-size description is placed in the bowl. \\
+
+Relational Placement &
+Relation &
+``Place the green pen to the left of the red block.'' &
+The target finishes within 3 inches of the reference and within the requested $\pm45^{\circ}$ directional sector. \\
+
+Referential Descriptions &
+Relation &
+``Place the pencil sharpener furthest from the yellow pen in the bowl.'' &
+The object satisfying the specified relation to the reference object is placed in the bowl. \\
+
+Ordinal Position &
+Scene structure &
+``Place the third object from the left in the bowl.'' &
+The object occupying the requested ordinal position is placed in the bowl. \\
+
+Counting &
+Scene structure &
+``Leave exactly two objects in the bowl.'' &
+The requested number of objects remains in the bowl at the end of the episode. \\
+
+\bottomrule
+\end{tabular}
+\end{table*}
+
+
+\subsection{Dataset and Physical Setup}
+
+The Spa-Bench dataset contains 1,200 human-teleoperated demonstrations, with 200 demonstrations per task family, totaling approximately 5.7 hours and 612,733 recorded frames. Each episode contains synchronized robot states, actions, natural-language instructions, and five RGB camera views. The evaluated policies receive the middle and wrist views. We release the demonstrations, prompt-to-episode manifest, scene specifications, initial robot configurations, and rollout videos. Appendix~\ref{app:dataset_details} reports the full camera, instruction, object-coverage, and recovery-state statistics.
+
+
+\subsection{Controlled Familiar and Novel Configurations}
+
+A conventional held-out task may simultaneously introduce a new object, instruction, spatial concept, and physical behavior. Failure under such a shift cannot be attributed specifically to spatial grounding. Spa-Bench instead compares familiar and novel spatial configurations while preserving exposure to the relevant objects, spatial concepts, and manipulation behaviors.
+
+For each task family, training contains demonstrations of every relevant spatial concept with other task arguments, as well as demonstrations in which the evaluation objects undergo the required physical behaviors. Selected concept--argument configurations are reserved for novel evaluation. The corresponding physical trajectories remain represented in the training dataset under direct or non-revealing instructions, preventing the novel evaluation from becoming a test of an unseen motor behavior.
+
+Viewed as a matrix whose rows represent spatial concepts and whose columns represent task arguments or physical transitions, the reserved evaluation configurations form \emph{missing cells}. Figure~\ref{fig:counting_matrix} illustrates this construction for Counting. The counting task evaluation sets up the bowl so that the robot has to do one object pick-and-place to achieve the desired goal. During training, the policy observes all relevant goal counts and is exposed to addition and removal behaviors for all four objects, but the missing cells are saved for the novel spatial grounding evaluation.
+
+The same principle is applied across all six task families. In Relational Placement, for example, demonstrations can physically move the green pen to the right of the red block while using the non-directional instruction ``Place the green pen next to the red block.'' The policy therefore observes the ordered object pair and required manipulation without receiving a training example that associates \emph{right} with that particular pair. Detailed training support and reserved evaluation configurations for every task are released with the dataset.
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{Figures/counting_missing_cell_matrix.png}
+    \caption{Controlled novel spatial grounding design for Counting. Rows denote requested final counts and columns denote whether satisfying the request requires adding or removing an object. Observed cells receive count-conditioned instructions during training. Reserved evaluation cells preserve exposure to the count concept and physical transition but do not pair them with the evaluated instruction during training.}
+    \label{fig:counting_matrix}
+\end{figure}
+
+\subsection{Evaluation Conditions and Rollout Allocation}
+
+A complete Spa-Bench evaluation contains 900 physical rollouts per model. Each task includes 20 familiar spatial configuration trials and 50 novel spatial configuration trials. Familiar trials establish whether a policy has acquired the task's training-supported spatially grounded behaviors. Novel trials evaluate whether those spatial concepts remain usable in configurations not demonstrated under the corresponding spatial instruction.
+
+Each task also includes 20 direct manipulation trials. These trials preserve the relevant objects, scene, and physical action while replacing the spatially grounded instruction with a direct, training-supported manipulation instruction. They therefore test whether a policy can recognize and manipulate the relevant objects when spatial inference is not required.
+
+Language robustness is evaluated through 20 paraphrase trials per task: 10 paraphrases of novel spatial instructions and 10 paraphrases of direct manipulation instructions. A further 20 trials per task evaluate cross-task-object (with the exception of Physical States, which uses a novel object due to no other object in the dataset being able to satisfy the physical states used in the Physical States task). These conditions test whether performance depends on task-specific associations between a spatial role and a particular object.
+
+Five task families additionally contain 20 no-intervention trials in which the correct response is to remain stationary, such as when the requested count or relation already holds or when an ordinal request has no valid referent. A no-intervention trial is successful only if the policy does not initiate task-directed arm or gripper motion. Relative Size Recognition does not include this condition because a smallest and largest object necessarily exist within every comparison set. Relational Placement includes 20 additional movement-required controls to distinguish correct no-intervention behavior from a general tendency not to initiate action when target and reference objects are close to each other, but do not satisfy the specified relation.
+
+These task-specific adjustments produce 170 trials for Relational Placement, 130 trials for Relative Size Recognition, and 150 trials for each of the remaining four task families, for a total of 900 rollouts per fully evaluated policy.
+
+
+\subsection{Scene Construction and Scoring}
+
+Evaluations are conducted in a windowless room with fixed lighting and camera placement. To ensure fair comparisons, corresponding trials across models are manually reset to match the same physical scene (e.g., evaluation 5 for MolmoAct2 matches the scene layout of evaluation 5 for $\pi_{0.5}$). Because these resets are performed by hand, the trials are nominally matched rather than pixel-identical.
+
+Where applicable, novel, direct manipulation, and paraphrase trials reuse the same nominal layouts. These matched-scene variants change the instruction or task-relevant property while holding the remaining scene factors approximately constant. This reduces the possibility that a policy can succeed by relying on a fixed object identity, position, or action direction.
+
+The primary outcome is binary physical task success according to the criteria in Table~\ref{tab:task_overview}; partial credit is not assigned. Rollouts are limited to 60 seconds for all models except VLA-0, which receives 90 seconds because of its slower inference rate. No human intervention occurs after the evaluation timer begins. Qualitative failure annotations are recorded separately and are not used to determine the reported binary success rates.
+
+\section{Models and Experimental Setup}
+\label{sec:models_setup}
+
+We evaluate five adapted policies from four VLA families: VLA-0 \cite{goyal2025vla0}, MolmoAct2 \cite{fang2026molmoact2}, $\pi_{0.5}$ \cite{black2025pi05}, and two adaptations of GR00T-N1.7 \cite{nvidia2025gr00t}. We refer to the GR00T adaptation with fixed language-model parameters as \emph{GR00T Frozen LLM} and the adaptation in which all components are updated as \emph{GR00T Full Fine-Tune}. GR00T Frozen LLM continues to receive language instructions and updates its visual, multimodal, and action-generation modules; the name indicates only that its language-model parameters remain fixed.
+
+The evaluated systems span textual and continuous action representations, different pretrained vision-language backbones, and action-chunk horizons ranging from 8 to 50 steps. They also differ in pretraining data, native preprocessing, action representation, and recommended adaptation procedure. We therefore compare complete adapted policy systems rather than treating the models as a controlled architectural ablation.
+
+\subsection{Training and Deployment Summary}
+
+Each policy receives the six-dimensional robot state together with the middle and wrist-camera observations. All policies are trained for 12 epochs on the same 1,200 episode identities using their native preprocessing and adaptation procedures. MolmoAct2, $\pi_{0.5}$, and GR00T Full Fine-Tune use the complete frame set, whereas GR00T Frozen LLM and VLA-0 use a motion-trimmed version that removes idle prefixes. The GR00T policies also use a causal action-smoothing filter during deployment, and GR00T Full Fine-Tune receives a fixed pre-rollout initialization displacement. Appendix~\ref{app:model_details} reports the exact frame-processing rule, optimizer settings, update counts, action horizons, updated components, deployment filter, and initialization procedure. These model-specific choices are treated as parts of the complete adapted systems rather than as controlled architectural variables.
+
+\subsection{Evaluation Scope}
+
+MolmoAct2, $\pi_{0.5}$, and GR00T Frozen LLM each complete the full 900-rollout Spa-Bench protocol. GR00T Full Fine-Tune completes 120 familiar spatial-configuration trials, with 20 trials from each task family. VLA-0 completes 72 familiar spatial-configuration trials, with at least 10 trials from each task family. These incomplete evaluations are reported as diagnostic familiar-condition baselines and are not included in analyses of novel spatial configurations. Together, the five policies contribute 2,892 real-robot evaluation rollouts. The novel spatial grounding evaluation contains 50 trials from each of the six task families, producing 300 primary trials for each fully evaluated policy. We report task-level performance and an aggregate over the six equally weighted task families.
+
+Familiar spatial configurations, direct manipulation controls, prompt paraphrases, cross-task objects, and task-specific no-intervention behavior are analyzed as separate diagnostic conditions rather than pooled into a single benchmark score. We define the \emph{matched-control gap} as the direct manipulation success rate minus success on the corresponding novel instructions evaluated in the same 120 scene setups. Prompt-paraphrase results are separated into paraphrases of novel spatial instructions and paraphrases of direct manipulation instructions. The strict cross-task-object aggregate excludes the separate 20-trial Physical States task novel-object pilot. No-intervention performance is reported by task because the semantic reason for not acting differs across task families.
+
+\subsection{Statistical Analysis}
+\label{sec:statistical_analysis}
+
+Each rollout receives a binary success outcome according to the task-specific criteria above. We report success rates with two-sided Wilson 95\% confidence intervals \cite{wilson1927}.
+
+For the two same-scene comparisons---novel spatial instructions versus direct manipulation instructions, and original versus paraphrased instructions---we also report the difference in success rate. We estimate 95\% confidence intervals for these differences by resampling complete matched-scene groups within each task 100,000 times, so outcomes collected from the same nominal scene remain together \cite{efron1979bootstrap,field2007cluster}. Other diagnostic comparisons, including standard versus cross-task objects and no-intervention behavior, are descriptive and are reported with Wilson intervals. Qualitative failure annotations do not affect success scoring or statistical inference.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Spatial Grounding: Familiar and Novel Configurations}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/novel_spatial_grounding_matched_manipulation.png}
+    \caption{Task-level performance on novel spatial grounding and direct manipulation controls for the three fully evaluated policies. Bars show success rates and whiskers show two-sided Wilson 95\% confidence intervals. Novel bars summarize all 50 trials per task; direct manipulation bars summarize 20 trials per task. The same-scene comparison in Sec.~\ref{sec:matched_manipulation} uses only the corresponding 20 novel trials per task.}
+    \label{fig:novel_and_manipulation_by_task}
+\end{figure*}
+
+Across 300 novel spatial-grounding trials per policy, MolmoAct2 achieved 156/300 successes (52.0\%, Wilson 95\% CI: 46.4--57.6\%), GR00T Frozen LLM achieved 133/300 (44.3\%, 38.8--50.0\%), and $\pi_{0.5}$ achieved 122/300 (40.7\%, 35.3--46.3\%). Performance varied by task rather than producing a consistent model ranking. For example, GR00T Frozen LLM performed best on Relational Placement, whereas MolmoAct2 performed best on the Physical State task and Referential Disambiguation. All three policies failed every novel Counting trial (Fig.~\ref{fig:novel_and_manipulation_by_task}).
+
+Familiar spatial grounding was stronger: MolmoAct2 achieved 87/120 (72.5\%, 63.9--79.7\%), $\pi_{0.5}$ achieved 82/120 (68.3\%, 59.6--76.0\%), and GR00T Frozen LLM achieved 81/120 (67.5\%, 58.7--75.2\%). The partial baselines achieved 25/120 for GR00T Full Fine-Tune and 0/72 for VLA-0, so they were not advanced to the complete protocol. Figure~\ref{fig:familiar_by_task} reports the task-level familiar-condition results for all five policies.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/familiar_spatial_grounding.png}
+    \caption{Task-level performance on familiar spatial grounding. Bars show success rates and whiskers show two-sided Wilson 95\% confidence intervals. MolmoAct2, $\pi_{0.5}$, GR00T Frozen LLM, and GR00T Full Fine-Tune each have 20 trials per task; VLA-0 has 72 trials in total, with at least 10 per task.}
+    \label{fig:familiar_by_task}
+\end{figure*}
+
+\subsection{Same-Scene Manipulation and Paraphrase Diagnostics}
+\label{sec:matched_manipulation}
+
+The aggregate novel results use 50 trials per task. For a more controlled comparison, 20 of those scenes per task were repeated with a direct manipulation instruction requesting the same object motion. On this 120-scene subset, MolmoAct2 achieved 73/120 (60.8\%) on novel spatial instructions and 107/120 (89.2\%) on matched manipulation, a 28.3-point gap (matched-scene 95\% CI: 20.0--36.7). The corresponding results were 54/120 (45.0\%) versus 100/120 (83.3\%) for $\pi_{0.5}$, a 38.3-point gap (29.2--47.5), and 50/120 (41.7\%) versus 98/120 (81.7\%) for GR00T Frozen LLM, a 40.0-point gap (30.8--49.2). The higher direct-manipulation performance in the same scenes shows that physical execution alone does not explain the spatial-grounding failures.
+
+Ten matched scenes per task also received paraphrased versions of both instruction types. On this 60-scene subset, original-to-paraphrased spatial success was 48.3\% to 38.3\% for GR00T Frozen LLM, 65.0\% to 50.0\% for MolmoAct2, and 48.3\% to 41.7\% for $\pi_{0.5}$. Direct manipulation success was 81.7\% to 70.0\%, 90.0\% to 90.0\%, and 86.7\% to 86.7\%, respectively. Thus, the direct-manipulation advantage remains under paraphrasing; wording alone does not explain the gap.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{Figures/paraphrase_comparison.png}
+    \caption{Effect of prompt paraphrasing on the corresponding 60-trial matched subset. Each original bar includes only the same 10 scenes per task used for its paraphrased condition. Results are separated into novel spatial-grounding and direct manipulation instructions; whiskers show two-sided Wilson 95\% confidence intervals.}
+    \label{fig:paraphrasing_comparison}
+\end{figure}
+
+\subsection{Additional Diagnostics}
+
+Cross-task-object success decreases by 9--16 percentage points relative to the corresponding five-task familiar baseline. No-intervention behavior is strongly task dependent: all three policies perform well when Counting already satisfies the goal, fail every Physical State and Ordinal Position no-intervention trial, and rarely correct a violated Relational Placement condition. Appendix~\ref{app:diagnostic_results} reports these secondary diagnostic results and their confidence intervals in full.
+
+\section{Discussion}
+
+Spa-Bench evaluates whether adapted VLAs can use spatial descriptions to select targets or decide when not to act in real scenes. The missing-cell split is an experimental control that establishes prior support for the constituent objects, concepts, and manipulation behaviors before testing novel spatial configurations. The results measure spatial grounding after adaptation, without identifying whether that knowledge originated in vision-language pretraining, robot fine-tuning, or their interaction.
+
+The diagnostics narrow several alternative explanations. Direct manipulation is substantially easier than novel spatial grounding in the same scenes, so motor execution alone cannot account for the observed gap. That advantage persists when both instruction types are paraphrased, reducing exact wording as a complete explanation. Cross-task-object performance decreases further, suggesting that policies also learn task-specific associations between spatial language and object roles. Finally, no-intervention behavior changes sharply across tasks: the policies often refrain from acting in satisfied Relational Placement scenes, yet fail to do so for several other task families. Together with the universal failure on novel Counting, these results indicate spatial grounding that is useful in some settings but neither uniform nor reliable.
+
+The controlled setting limits the scope of these conclusions. Spa-Bench uses one robot, workspace, object inventory, and family of short-horizon manipulations, and many scenes contain only two plausible targets. Manual resets reproduce nominal layouts rather than pixel-identical physical states. The no-intervention trials are also zero-shot diagnostics because the 1,200 demonstrations contain no explicit no-operation examples. In addition, model-specific adaptation and deployment choices---including the GR00T Full Fine-Tune initialization assist described in Appendix~\ref{app:model_details}---mean that results compare complete trained-and-deployed systems rather than isolate individual architectural components.
+
+Future versions should expand the number of candidate objects, clutter level, workspace size, manipulation horizon, and robot embodiments. The same controlled design could also evaluate whether training with spatially contrastive examples, explicit negative cases, and no-intervention demonstrations improves real-world grounding without sacrificing manipulation performance.
+
+\section{Conclusion}
+
+We introduced Spa-Bench, a real-robot benchmark for spatial grounding across six tabletop task families. Its familiar and novel spatial configurations, together with direct manipulation, paraphrase, object-transfer, and no-intervention diagnostics, test whether VLAs can convert spatial descriptions into appropriate physical behavior while controlling important alternative explanations.
+
+Across the three fully evaluated policies, familiar spatial-grounding success was 67.5\%--72.5\%, novel-configuration success was 40.7\%--52.0\%, and direct manipulation success was 81.7\%--89.2\%. The manipulation advantage persisted under paraphrasing, performance varied substantially by task and object context, and all three policies failed every novel Counting trial. Current VLAs therefore exhibit useful but brittle spatial grounding; Spa-Bench provides a controlled real-robot test bed for measuring progress toward more spatially reliable robot policies.
+
+\input{bib}
+
+\clearpage
+\appendices
+
+\section{Dataset Details}
+\label{app:dataset_details}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{Figures/sankey_diagram.png}
+    \caption{Spa-Bench dataset and evaluation-rollout breakdown.}
+    \label{fig:dataset_breakdown}
+\end{figure}
+
+The 1,200 demonstrations contain 321 unique instruction strings, including surface-form variations such as \emph{move}, \emph{place}, \emph{put}, and \emph{pick}. Prompt paraphrases used in the language-robustness evaluation are excluded from training. Each episode contains synchronized robot states, actions, natural-language instructions, and RGB observations from wrist, left, right, middle, and overhead cameras. Although all five views are released, the evaluated policies receive only the middle and wrist observations.
+
+The dataset contains 25 physical object instances across 11 morphological object families. Each object family appears as a manipulation target in at least 50 demonstrations. Of the 1,200 demonstrations, 883 begin from the nominal home position, while 317 begin from recovery or non-home positions following imperfect grasps or intermediate arm positions. Every object receives at least 10 recovery or non-home demonstrations. The bowl remains fixed throughout data collection, allowing the benchmark to focus on target selection and scene interpretation rather than goal-position generalization.
+
+\section{Model Adaptation and Deployment Details}
+\label{app:model_details}
+
+\subsection{Policy Inputs and Frame Processing}
+
+Each policy receives a six-dimensional robot state and two RGB observations: one from a fixed middle camera facing the robot and one from a wrist-mounted camera. Both streams are recorded at $480\times640$ pixels and converted to each policy's native input resolution during preprocessing. The released dataset also contains left, right, and overhead camera views, but these views are not supplied to the policies during training or evaluation.
+
+The semantic content and episode identities are shared across models, but frame-level preprocessing is not identical. MolmoAct2, $\pi_{0.5}$, and GR00T Full Fine-Tune use the complete 612,733-frame dataset. GR00T Frozen LLM and VLA-0 use a motion-trimmed derivative containing 570,386 frames. Motion onset is defined as the first of five consecutive frames whose maximum joint displacement from the initial five-frame baseline exceeds 2.0 motor-position units. Five frames preceding the detected onset are retained. This procedure removes 42,333 idle-prefix frames from 1,176 episodes. Fourteen additional frames are removed to repair terminal camera--state alignment in two episodes, resulting in 42,347 removed frames in total, or 6.91\% of the original dataset. Prompts, actions, states, and episode identities are otherwise preserved.
+
+We introduced motion trimming after preliminary training showed that shorter-horizon policies could remain at the static initial configuration instead of initiating the task. This preprocessing difference is therefore a model-specific adaptation choice rather than a controlled experimental variable.
+
+\subsection{Fine-Tuning Configuration}
+
+All policies are trained on four NVIDIA GH200 Grace Hopper Superchips with a per-device batch size of 24, producing a global batch size of 96. We evaluate the checkpoint at the end of epoch 12 for every model, with checkpoint selection fixed before the reported real-robot evaluation. Epoch 12 corresponds to 76,596 updates for MolmoAct2, $\pi_{0.5}$, and GR00T Full Fine-Tune, 71,304 updates for GR00T Frozen LLM, and 77,246 updates for VLA-0.
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\caption{Model adaptation settings used in Spa-Bench. ``Full'' and ``trimmed'' refer to the 612,733-frame and 570,386-frame dataset variants, respectively. $H$ denotes the predicted action-chunk horizon. All evaluations use epoch-12 checkpoints. A dash indicates that the saved configuration does not expose an optimizer-update count.}
+\label{tab:training_configuration}
+\begin{tabularx}{\textwidth}{
+    p{0.13\textwidth}
+    p{0.16\textwidth}
+    p{0.12\textwidth}
+    c
+    p{0.15\textwidth}
+    X}
+\toprule
+\textbf{Model} &
+\textbf{Initialization} &
+\textbf{Data / updates} &
+\textbf{$H$} &
+\textbf{State/action processing} &
+\textbf{Updated components} \\
+\midrule
+
+$\pi_{0.5}$ &
+\texttt{lerobot/pi05\_base} &
+Full / 76,596 &
+50 &
+Quantile normalization &
+PaliGemma vision-language backbone and action expert; learning rate $2.5\times10^{-5}$ \\
+
+MolmoAct2 &
+\texttt{allenai/MolmoAct2} &
+Full / 76,596 &
+30 &
+Min--max normalization &
+VLM and action expert; token embeddings frozen; base learning rate $10^{-5}$ \\
+
+VLA-0 &
+Qwen2.5-VL-3B-Instruct &
+Trimmed / 77,246 &
+8 &
+Min--max scaling and 1,000 text bins &
+Full Qwen backbone without LoRA or QLoRA; learning rate $5\times10^{-6}$ \\
+
+GR00T Frozen LLM &
+GR00T-N1.7-3B &
+Trimmed / 71,304 &
+16 &
+GR00T-native processing &
+Visual, multimodal, and diffusion-action modules; LLM frozen; learning rate $10^{-4}$ \\
+
+GR00T Full Fine-Tune &
+GR00T-N1.7-3B &
+Full / 76,596 &
+16 &
+GR00T-native processing &
+All visual, multimodal, diffusion-action, and LLM components; learning rate $10^{-5}$ \\
+
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+All models use AdamW. MolmoAct2 uses zero weight decay, 200 warm-up updates, and cosine decay; its vision transformer and connector use a learning rate of $5\times10^{-6}$, while its action expert uses $5\times10^{-5}$. The $\pi_{0.5}$ configuration uses weight decay 0.01, 1,000 warm-up updates, and cosine decay. VLA-0 uses weight decay 0.01 and cosine annealing. Its native preprocessing resizes both camera observations to $224\times224$ pixels and applies random cropping and color jitter during training. Both GR00T configurations use weight decay $10^{-5}$ and a 5\% warm-up followed by cosine decay.
+
+In a separate pipeline check, our VLA-0 implementation achieved 70\% mean success on a 400-demonstration, four-task SO-101 benchmark patterned after the authors' real-world evaluation, for which they report 60\% success \cite{goyal2025vla0}. Differences in tasks, cameras, optimization, and checkpoint selection prevent this experiment from constituting a controlled replication or direct performance comparison. This experiment verifies only that our implementation can produce a functional robot policy.
+
+\subsection{Deployment Processing}
+
+All policies are deployed through the same \texttt{lerobot-rollout} interface. During preliminary deployment, both GR00T variants exhibited high-frequency action jitter that interfered with grasp execution. We apply the same causal exponential moving-average filter to every non-gripper action dimension for both GR00T policies:
+
+\begin{equation}
+    \widetilde{a}_{t,j}
+    =
+    0.25a_{t,j}
+    +
+    0.75\widetilde{a}_{t-1,j},
+    \label{eq:groot_ema}
+\end{equation}
+
+where $a_{t,j}$ is the predicted target for action dimension $j$ and $\widetilde{a}_{t,j}$ is the executed filtered target. The filter state is initialized from the robot's measured configuration, persists across action-chunk boundaries, and is reset between rollouts. The gripper command is not filtered so that grasp closure is not delayed. This follows the GR00T deployment procedure described by ANR Robot \cite{anr_gr00t_experiments}.
+
+GR00T Full Fine-Tune was trained on episodes retaining their static initial prefixes and frequently remained stationary at the nominal starting configuration during preliminary, unscored rollouts. For this condition only, we apply a fixed small upward displacement immediately before autonomous policy execution. This displacement occurs before the rollout timer and scoring begin; no human correction or intervention is provided during the scored rollout. Neither GR00T Frozen LLM nor VLA-0 receives this initialization assist.
+
+% TODO: Report the approximate joint-space or end-effector displacement
+% used for the GR00T Full Fine-Tune initialization assist, if recorded.
+
+\section{Additional Diagnostic Results}
+\label{app:diagnostic_results}
+
+\subsection{Cross-Task Objects}
+
+Cross-task-object trials apply familiar spatial concepts to objects from other task families. Over the five comparable task families, standard-object versus cross-task-object success was 64/100 versus 55/100 for GR00T Frozen LLM, 66/100 versus 54/100 for $\pi_{0.5}$, and 69/100 versus 53/100 for MolmoAct2. These baselines use the same task families but are not same-scene pairs, so the 9--16 point decreases are descriptive evidence that familiar spatial grounding is sensitive to object context.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{Figures/cross_task_objects.png}
+    \caption{Familiar spatial grounding with standard and cross-task objects over the same five task families. Each bar summarizes 100 trials; whiskers show two-sided Wilson 95\% confidence intervals.}
+    \label{fig:object_transfer}
+\end{figure}
+
+\subsection{No-Intervention and Corrective Behavior}
+
+Across the four non-relational no-intervention diagnostics, aggregate success was 17/80 (21.2\%) for GR00T Frozen LLM, 19/80 (23.8\%) for MolmoAct2, and 16/80 (20.0\%) for $\pi_{0.5}$. All three policies succeeded on 80--85\% of Counting trials but on none of the Physical State or Ordinal Position trials (Fig.~\ref{fig:nonrelational_action_gating}).
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{Figures/no_movement.png}
+    \caption{No-intervention success in the four non-relational diagnostics and their aggregate. Each task-level bar summarizes 20 trials; whiskers show two-sided Wilson 95\% confidence intervals.}
+    \label{fig:nonrelational_action_gating}
+\end{figure}
+
+Relational Placement shows a different failure mode. When the requested relation was already satisfied, success was 19/20 for GR00T Frozen LLM, 16/20 for $\pi_{0.5}$, and 15/20 for MolmoAct2. When the matched condition required corrective movement, success decreased to 1/20, 3/20, and 1/20, respectively (Fig.~\ref{fig:relational_action_gating}). This pattern is consistent with a task-specific tendency not to initiate motion rather than reliable recognition of whether intervention is required.
+
+\begin{center}
+    \includegraphics[width=0.92\columnwidth]{Figures/relational_action_gating.png}
+    \captionof{figure}{Relational Placement action gating. The left condition requires no movement because the requested relation already holds; the matched right condition requires corrective movement. Each bar summarizes 20 trials.}
+    \label{fig:relational_action_gating}
+\end{center}
+
+\end{document}

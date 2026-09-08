@@ -1,0 +1,209 @@
+{
+  "source": "/Users/justintiensmith/Documents/lerobot/outputs/01a0678e-4e7e-7a31-b018-7fba72ab9fe5/MSc_Thesis_Bar_Charts_with_Model_Failure_Profiles.xlsx",
+  "output": "/Users/justintiensmith/Documents/lerobot/outputs/01a0678e-4e7e-7a31-b018-7fba72ab9fe5/MSc_Thesis_Bar_Charts_with_Task_Failure_Profiles.xlsx",
+  "new_sheets": [
+    "Novel Failures by Task",
+    "Familiar Failures by Task",
+    "Task Failure Data"
+  ],
+  "condition_totals": {
+    "Novel Spatial Grounding": 489,
+    "Familiar Spatial Grounding": 276
+  },
+  "task_model_totals": {
+    "Novel Spatial Grounding": {
+      "Counting": {
+        "GR00T Frozen LLM": 50,
+        "Pi0.5": 50,
+        "MolmoAct2": 50
+      },
+      "Ordinal Position": {
+        "GR00T Frozen LLM": 29,
+        "Pi0.5": 27,
+        "MolmoAct2": 23
+      },
+      "Relational Placement": {
+        "GR00T Frozen LLM": 11,
+        "Pi0.5": 14,
+        "MolmoAct2": 25
+      },
+      "Physical State": {
+        "GR00T Frozen LLM": 33,
+        "Pi0.5": 32,
+        "MolmoAct2": 12
+      },
+      "Relative Size": {
+        "GR00T Frozen LLM": 21,
+        "Pi0.5": 23,
+        "MolmoAct2": 18
+      },
+      "Referential Description": {
+        "GR00T Frozen LLM": 23,
+        "Pi0.5": 32,
+        "MolmoAct2": 16
+      }
+    },
+    "Familiar Spatial Grounding": {
+      "Counting": {
+        "VLA-0": 10,
+        "GR00T Full Fine-Tune": 13,
+        "GR00T Frozen LLM": 8,
+        "Pi0.5": 9,
+        "MolmoAct2": 8
+      },
+      "Ordinal Position": {
+        "VLA-0": 10,
+        "GR00T Full Fine-Tune": 17,
+        "GR00T Frozen LLM": 11,
+        "Pi0.5": 13,
+        "MolmoAct2": 10
+      },
+      "Relational Placement": {
+        "VLA-0": 12,
+        "GR00T Full Fine-Tune": 20,
+        "GR00T Frozen LLM": 6,
+        "Pi0.5": 7,
+        "MolmoAct2": 4
+      },
+      "Physical State": {
+        "VLA-0": 10,
+        "GR00T Full Fine-Tune": 16,
+        "GR00T Frozen LLM": 3,
+        "Pi0.5": 4,
+        "MolmoAct2": 2
+      },
+      "Relative Size": {
+        "VLA-0": 20,
+        "GR00T Full Fine-Tune": 13,
+        "GR00T Frozen LLM": 3,
+        "Pi0.5": 1,
+        "MolmoAct2": 3
+      },
+      "Referential Description": {
+        "VLA-0": 10,
+        "GR00T Full Fine-Tune": 16,
+        "GR00T Frozen LLM": 8,
+        "Pi0.5": 4,
+        "MolmoAct2": 5
+      }
+    }
+  },
+  "flat_rows": 384,
+  "flat_count_total": 765,
+  "chart_checks": {
+    "Novel Failures by Task": [
+      {
+        "task": "Counting",
+        "series": 8,
+        "categories": 3,
+        "scale": [
+          0,
+          1
+        ]
+      },
+      {
+        "task": "Ordinal Position",
+        "series": 8,
+        "categories": 3,
+        "scale": [
+          0,
+          1
+        ]
+      },
+      {
+        "task": "Relational Placement",
+        "series": 8,
+        "categories": 3,
+        "scale": [
+          0,
+          1
+        ]
+      },
+      {
+        "task": "Physical State",
+        "series": 8,
+        "categories": 3,
+        "scale": [
+          0,
+          1
+        ]
+      },
+      {
+        "task": "Relative Size",
+        "series": 8,
+        "categories": 3,
+        "scale": [
+          0,
+          1
+        ]
+      },
+      {
+        "task": "Referential Description",
+        "series": 8,
+        "categories": 3,
+        "scale": [
+          0,
+          1
+        ]
+      }
+    ],
+    "Familiar Failures by Task": [
+      {
+        "task": "Counting",
+        "series": 8,
+        "categories": 5,
+        "scale": [
+          0,
+          1
+        ]
+      },
+      {
+        "task": "Ordinal Position",
+        "series": 8,
+        "categories": 5,
+        "scale": [
+          0,
+          1
+        ]
+      },
+      {
+        "task": "Relational Placement",
+        "series": 8,
+        "categories": 5,
+        "scale": [
+          0,
+          1
+        ]
+      },
+      {
+        "task": "Physical State",
+        "series": 8,
+        "categories": 5,
+        "scale": [
+          0,
+          1
+        ]
+      },
+      {
+        "task": "Relative Size",
+        "series": 8,
+        "categories": 5,
+        "scale": [
+          0,
+          1
+        ]
+      },
+      {
+        "task": "Referential Description",
+        "series": 8,
+        "categories": 5,
+        "scale": [
+          0,
+          1
+        ]
+      }
+    ]
+  },
+  "existing_sheets_unchanged": true,
+  "formula_errors": []
+}

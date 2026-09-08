@@ -1,0 +1,544 @@
+\documentclass[conference]{IEEEtran}
+
+\IEEEoverridecommandlockouts % Required for \thanks and \IEEEaftertitletext
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{capt-of} % Provides \captionof without replacing IEEE captions
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+\usepackage{url}
+
+% 1. Define your custom colors here
+\colorlet{ObservedCell}{green!30}
+\colorlet{HeldOutCell}{orange!30}
+
+% 2. Define the 'cell' style if you haven't already
+\tikzset{
+    cell/.style={minimum width=2cm, minimum height=1cm, anchor=center}
+}
+
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{matrix,positioning}
+
+\title{Spa-Bench: Evaluating Scene-Grounded Reasoning in
+Vision-Language-Action Models on a Real Robot}
+
+% \author{Anonymous Authors}
+
+\author{
+\IEEEauthorblockN{
+Justin Tien-Smith$^*$ \quad
+Matthew Pidden$^*$ \quad
+Rolandos Potamias$^\dagger$
+}
+\IEEEauthorblockA{
+Imperial College London
+}
+\thanks{$^*$Equal contribution. $^\dagger$Advising author.}
+}
+
+\IEEEaftertitletext{%
+\begin{minipage}{\textwidth}
+
+% Center only the image
+{\centering
+\includegraphics[
+    width=\textwidth,
+    height=0.40\textheight,
+    keepaspectratio
+]{main_figure.png}
+\par}
+
+% Caption returns to normal IEEE left-justified formatting
+\captionof{figure}{
+\textbf{Spa-Bench training and evaluation design.}
+Every concept, object, and manipulation behavior is represented during
+fine-tuning, while selected concept--argument compositions are withheld.
+Left: demonstrations expose the target object/action and relation concept
+separately. Right: representative compositional-transfer,
+matched-manipulation, and in-distribution outcomes. Additional language,
+cross-task-object, and no-intervention diagnostics yield 900 binary-scored
+rollouts per fully evaluated model; failure types are qualitative annotations.
+}
+\label{fig:main_figure}
+
+\end{minipage}
+\vspace{0.5\baselineskip}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Vision-language-action models (VLAs) aim to transfer semantic knowledge acquired during vision-language pretraining into generalizable robot behavior. However, existing evaluations suggest that their generalization often extends little beyond recognizing objects absent from robot fine-tuning data but familiar to the pretrained vision-language model. We introduce the Scene-Grounded Reasoning Benchmark (Spa-Bench), a real-robot benchmark testing whether VLAs can compositionally apply familiar scene-grounded concepts in novel configurations. Spa-Bench uses a controlled missing-cell design: every evaluated concept, object, and manipulation behavior appears during fine-tuning, while selected concept--argument combinations are withheld. Its fine-tuning data contains 1,200 demonstrations across six tabletop task families. Each fully evaluated model receives 300 primary transfer trials and 600 diagnostic trials covering in-distribution performance, matched manipulation, prompt paraphrases, cross-task objects, and task-specific no-intervention behavior. We release more than 4,000 SO-101 trajectories. MolmoAct2 achieved the highest primary-transfer success rate at 52.0\%, compared with 44.3\% for GR00T-N1.7 and 40.7\% for $\pi_{0.5}$. The persistent in-distribution--transfer gaps show that current VLAs remain limited in grounding familiar concepts compositionally in real-world scenes.
+\end{abstract}
+
+% Key points to make: What's the point of having a model that is good at grasping if it can't even reason which object is the correct one to bring?
+
+\begin{IEEEkeywords}
+vision-language-action models, robot learning, robotic reasoning, Spa-Benching
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Vision-language-action models (VLAs) seek to convert knowledge acquired by pretrained vision-language models (VLMs) into generalizable robot behavior \cite{brohan2023rt2}. Successful transfer requires more than executing a familiar grasp or placement: the scene and instruction must determine which action is appropriate.
+
+Demonstrating this capability is difficult, especially when instructions are grounded by observations from a given scene. A robot may produce correct actions by exploiting correlations in its fine-tuning data, such as a recurring target object, spatial arrangement, initial state, or action sequence. LIBERO-PRO illustrates this concern by showing that policies with strong standard-benchmark performance can deteriorate sharply under controlled changes to objects, initial states, instructions, and environments \cite{zhou2025liberopro}. Therefore, a benchmark must distinguish semantic selection from object recognition, manipulation competence, and memorization of familiar scenes.
+
+This motivates the central question of our work:
+
+\begin{quote}
+\emph{Can a VLA recombine a familiar semantic concept, object, and manipulation behavior when their exact combination was excluded from fine-tuning?}
+\end{quote}
+
+We introduce the Scene-Grounded Reasoning Benchmark (Spa-Bench), a real-robot benchmark designed to answer this question. Spa-Bench uses a controlled missing-cell design in which every evaluated concept, object, and physical behavior appears during fine-tuning, but selected concept--argument combinations are withheld. For example, a model may observe a concept applied to several objects and separately manipulate the held-out object, without ever observing that concept applied to that object. This construction tests whether the model can bind familiar components in a new combination while avoiding the confounds of novel-object recognition and previously unseen motor skills.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{missing_cell_matrices.png}
+    \caption{Matrices representing the missing cell design for Size Recognition, Counting, and Relational Placement. The withheld concept--argument bindings are evaluated even though the concept, object identity, and physical trajectory each remain represented in training.}
+    \label{fig:missing_cell_matrices}
+\end{figure}
+
+Spa-Bench contains 1,200 fine-tuning demonstrations across six tabletop task families and a 900-rollout protocol comprising 300 primary concept-transfer trials and 600 diagnostics. The diagnostics separate semantic-selection failures from familiar-task, manipulation, language, object-transfer, and no-intervention failures.
+
+Across the fully evaluated models, primary transfer success ranged from 40.7\% to 52.0\%, despite in-distribution success rates between 67.5\% and 72.5\%. MolmoAct2 achieved the highest transfer performance, followed by GR00T-N1.7 and $\pi_{0.5}$. The persistent gap between familiar and withheld combinations indicates that current VLAs acquire useful semantic behavior but do not yet apply it compositionally and reliably in physical scenes.
+
+Our contributions are:
+\begin{itemize}
+    \item A controlled missing-cell benchmark with 1,200 demonstrations across six scene-grounded task families and diagnostics that separate compositional transfer from recognition, language, and manipulation competence.
+    \item An empirical comparison showing that scene-grounded transfer remains task-dependent and substantially weaker than performance on familiar combinations.
+    \item A release of more than 4,000 SO-101 training and evaluation trajectories for reproducibility and further research.
+\end{itemize}
+
+\section{Related Work}
+
+\subsection{Vision-Language-Action Models}
+
+RT-2 introduced the VLA formulation for transferring Internet-scale
+vision-language knowledge into robot control \cite{brohan2023rt2}.
+Subsequent systems differ substantially in their action interfaces and
+pretraining: VLA-0 emits numerical action strings
+\cite{goyal2025vla0}, GR00T-N1.7 uses a continuous-action diffusion
+transformer \cite{nvidia2025grootn1}, $\pi_{0.5}$ combines heterogeneous
+co-training sources \cite{black2025pi05}, and MolmoAct2 conditions a
+flow-matching action expert on an embodied VLM
+\cite{fang2026molmoact2}. We compare complete pretrained systems after
+adaptation and do not attribute performance differences to any single
+architectural component.
+
+\subsection{Benchmarks for VLA Generalization}
+
+VLABench measures broad semantic and long-horizon manipulation across
+100 task categories and more than 2,000 objects
+\cite{zhang2024vlabench}. LIBERO-PRO shows that performance can degrade
+under controlled changes to objects, initial states, instructions, and
+environments \cite{zhou2025liberopro}, while STAR-Gen organizes
+generalization along visual, semantic, and behavioral axes
+\cite{gao2026stargen}. Spa-Bench complements these broader evaluations by
+holding the embodiment, workspace, and manipulation family approximately
+fixed while withholding selected concept--argument bindings. Its matched
+and counterfactual scenes target scene-grounded semantic and
+semantic-plus-behavioral transfer rather than open-world competence or
+long-horizon planning.
+
+\section{Benchmark Design}
+\label{sec:benchmark_design}
+
+\subsection{Benchmark Overview}
+
+Spa-Bench evaluates whether a robot policy can use concepts grounded in a visual scene to select and manipulate the correct object. The benchmark comprises six tabletop task families: State Recognition, Relational Placement, Referential Disambiguation, Ordinal Reference Ordering, Counting, and Size Recognition. All six tasks use the same underlying pick-and-place action family. Spa-Bench therefore holds the robot embodiment, workspace, receptacle, and broad manipulation behavior approximately constant while varying the semantic rule used to select the target object or determine whether an action is required. This design helps separate failures of scene interpretation from failures caused by an entirely novel motor behavior.
+
+All ordinal and spatial directions, including left, right, front, and behind, are defined from the robot's perspective rather than from an individual camera view. Table~\ref{tab:benchmark_tasks} summarizes the semantic decision and scene construction for each task.
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{The six Spa-Bench task families. The examples illustrate the evaluated reasoning rule rather than the complete prompt set.}
+\label{tab:benchmark_tasks}
+\begin{tabular}{p{0.16\textwidth} p{0.24\textwidth} p{0.27\textwidth} p{0.25\textwidth}}
+\toprule
+\textbf{Task} & \textbf{Semantic decision} & \textbf{Example instruction} & \textbf{Scene construction} \\
+\midrule
+State Recognition
+& Select the category member with the requested physical state.
+& ``Place the closed white cup in the bowl.''
+& Multiple same-category objects are present, but exactly one has the requested state. \\
+
+Relational Placement
+& Establish a directed spatial relation between a target and a reference object.
+& ``Place the green pen to the left of the red block.''
+& The target and reference are visible, and the requested relation is initially unsatisfied in movement-required trials. \\
+
+Referential Disambiguation
+& Select a candidate using its relation to one or more reference objects.
+& ``Place the pencil sharpener furthest from the yellow pen in the bowl.''
+& Candidate objects occur at controlled distances or positions relative to the reference object(s). \\
+
+Ordinal Reference Ordering
+& Select an object by its position in an ordered sequence.
+& ``Place the third object from the left in the bowl.''
+& Two, three, or four objects are arranged from the robot's left to right. \\
+
+Counting
+& Add or remove objects to produce the requested final count.
+& ``Leave exactly three objects in the bowl.''
+& Objects begin in the bowl and on the table, so reaching the goal may require addition, removal, or no action. \\
+
+Size Recognition
+& Select the object with the requested relative size.
+& ``Place the smallest object in the bowl.''
+& The target is defined by its size relative to the other visible candidates. \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Training Dataset}
+
+The Spa-Bench fine-tuning dataset contains 1,200 teleoperated demonstrations, with 200 demonstrations for each task family. Although the demonstrations share a common pick-and-place action structure, the instruction and scene determine which object should be manipulated and, for Counting and the diagnostic conditions described below, whether manipulation is required.
+
+The training manifest contains 321 unique instruction strings under exact string matching. These strings include surface-form variation such as ``move,'' ``place,'' ``put,'' and ``pick up~\ldots{} and place'' constructions. Masked prompts use familiar direct-object or more general manipulation language, whereas the evaluation paraphrases are excluded from training. The complete prompt manifest is released with the dataset so that the exact linguistic support for every training episode can be audited.
+
+The dataset uses 25 physical instances from 11 morphological object
+families, each serving as the pick-and-place target in at least 50
+demonstrations. The released manifest lists every instance and episode.
+Of the 1,200 demonstrations, 883 begin at the home configuration, 237 at
+recovery configurations following imperfect or failed grasps, and 80 at
+post-drop configurations in Counting. The bowl remains fixed, isolating
+target selection and scene interpretation from goal-position generalization.
+
+\subsection{Controlled Missing-Cell Design}
+
+Let $c$ denote a semantic concept and $a$ an argument to which that concept applies, such as an object identity, physical state, spatial role, ordinal position, count transition, or size role. For every held-out pair $(c^{\ast},a^{\ast})$, training contains $c^{\ast}$ with other arguments and $a^{\ast}$ under other supported instructions, but never the target composition $c^{\ast}(a^{\ast})$. We refer to the absent concept--argument composition as a \emph{missing cell}. Compositional-transfer evaluation queries the missing cells while keeping the component concept, target identity, and required physical behavior represented individually in training.
+
+A \emph{masked demonstration} preserves the recorded scene, target object, and physical trajectory but replaces the held-out concept instruction with a familiar instruction that does not express the withheld binding. For example, a Relational Placement demonstration may physically move the green pen to the right of the red block while using the instruction ``Place the green pen next to the red block.'' The policy therefore observes the ordered object pair and relevant manipulation without receiving a positive example that binds \emph{right} to that pair.
+
+
+
+Table~\ref{tab:held_out_design} reports the resulting support and withheld compositions for all six task families.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Training support and withheld compositions in the final 1,200-demonstration prompt manifest. The listed role counts are mutually exclusive within each task.}
+\label{tab:held_out_design}
+\begin{tabular}{p{0.18\textwidth} p{0.40\textwidth} p{0.34\textwidth}}
+\toprule
+\textbf{Task} & \textbf{Training support} & \textbf{Missing cell(s)} \\
+\midrule
+State Recognition
+& 105 explicit object--state demonstrations and 95 state-masked physical exposures. Every state word and target category is explicitly represented elsewhere.
+& White cup--upside-down; striped cup--open; brown cup--closed; spice container--upright. \\
+
+Relational Placement
+& 166 explicit directed-relation demonstrations and 34 masked demonstrations containing the green-pen/red-block pair.
+& Left, right, front, and behind for the green-pen/red-block pair, in both target--reference orders. \\
+
+Referential Disambiguation
+& 150 explicit relation--category demonstrations and 50 masked direct-name demonstrations.
+& Airplane--furthest; crushed soda can--closest; pencil sharpener--between. \\
+
+Ordinal Reference Ordering
+& 127 explicit ordinal demonstrations and 73 masked direct-name demonstrations across sequences of two, three, and four objects.
+& Selected sequence-length--position--identity combinations, with equivalent left- and right-based descriptions withheld together. \\
+
+Counting
+& 140 explicit goal-count demonstrations and 60 masked direct-action demonstrations that retain the held-out physical transitions.
+& Goal one through $2\rightarrow1$ removal; goal three through $2\rightarrow3$ addition. \\
+
+Size Recognition
+& 140 explicit size-grounding demonstrations; 40 masked size--identity demonstrations, comprising 20 for each missing cell; and 20 additional direct-object controls, with five per object identity.
+& Green block--largest; juggling ball--smallest. \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Two task-specific constraints prevent the training split from leaking the held-out binding. First, State Recognition uses an incomplete object--state factorial. Explicit state demonstrations contain two objects of the same category, exactly one of which satisfies the instruction. The non-queried state axis is controlled: open/closed comparisons use upright containers, whilst upright/upside-down comparisons hold open/closed status constant. A state-masked demonstration uses a category-only prompt and contains only one object of the target category, preventing the prompt from identifying a held-out state by elimination.
+
+Second, Ordinal Reference Ordering represents the $k$-th physical position from the robot's left as $L_k$. In a four-object sequence, for example, $L_1$ is both first from the left and fourth from the right. We therefore withhold equivalent left- and right-based descriptions of a missing physical position together. Two-, three-, and four-object sequences appear in training. The recorded three-object demonstrations target only $L_1$ and $L_3$, so we do not claim in-distribution coverage of the three-object middle position $L_2$.
+
+\subsection{Evaluation Conditions and Rollout Allocation}
+
+A complete evaluation contains 900 rollouts. The primary condition has 50
+compositional-transfer trials per task (300 total), in which the concept,
+object, and physical action are individually familiar but their selected
+binding is withheld. Each task also has 20 in-distribution trials, 20
+matched-manipulation controls, 20 language-robustness trials (10 transfer
+and 10 matched-control paraphrases), and 20 cross-task/novel-object trials.
+The matched controls replace the missing-cell instruction in a nominally
+matched scene with a training-supported instruction.
+
+Five tasks additionally contain 20 no-intervention trials in which no valid
+target exists or the goal already holds; any robot motion is a failure.
+Relational Placement adds 20 movement-required controls to distinguish
+goal recognition from a general tendency not to initiate motion. Size
+Recognition omits no-intervention because an extremal object necessarily
+exists. Consequently, Relational Placement contains 170 trials, Size
+Recognition 130, and each remaining task 150. The State Recognition
+object-transfer block uses a globally unseen black cup and is treated as a
+novel-object pilot; the other five use objects familiar from another task.
+
+\subsection{Scene Construction and Rollout Protocol}
+
+Trials are organized into counterfactual families that retain nominal object
+identities and positions while changing the task-relevant instruction.
+Relational families reverse target--reference order and direction;
+Referential families exchange candidate relations; Counting changes the
+target count; and cross-task families vary the role of the transferred
+object. Size Recognition instead uses nominally matched smallest/largest
+contrasts because the held-out bindings cannot be fully counterbalanced.
+
+The same episode-level scene manifest and collection order are reused across
+models. Data are collected under fixed lighting in a windowless room with a
+stationary middle camera. Before each rollout, the experimenter manually
+matches the live view to the recorded reference. Resets are therefore
+nominally matched rather than pixel-identical.
+
+Each rollout lasts at most 60 seconds and receives a binary task-success label based on whether the commanded physical outcome is achieved. No human intervention, correction, or object repositioning occurs during a rollout. The evaluator also records qualitative observations and a secondary judgment of whether the behavior appears consistent with the intended reasoning process, but this subjective annotation is not used as the primary benchmark score. For no-intervention trials, success additionally requires the robot to remain stationary for the rollout duration.
+
+\section{Models and Fine-Tuning}
+
+We evaluate five adapted policies from four VLA families: VLA-0
+\cite{goyal2025vla0}, MolmoAct2 \cite{fang2026molmoact2}, $\pi_{0.5}$
+\cite{black2025pi05}, and frozen-LLM and full-finetune adaptations of
+GR00T-N1.7 \cite{nvidia2025grootn1}.
+
+\subsection{Observations and Training Data}
+
+The dataset contains 1,200 demonstrations (612,733 frames, $\sim$5.7 hours). Policies receive a six-dimensional robot state and two RGB streams (middle and wrist cameras at $480\times640$ pixels). MolmoAct2 and $\pi_{0.5}$ use full-length episodes. GR00T full-finetune uses a two-camera derivative of the 612,733 frames, whereas GR00T frozen-LLM and VLA-0 use a motion-trimmed derivative (570,386 frames) removing idle initial prefixes where joint displacement stayed below 2.0 motor-position units. This preprocessing choice prevents shorter-horizon policies from remaining static at initialization.
+
+\subsection{Optimization and Model Adaptation}
+
+All policies were trained for 12 epochs (76,596 optimization steps) on
+four NVIDIA GH200 chips with global batch size 96; the epoch-12 checkpoints
+were then fixed for evaluation. Table~\ref{tab:training_configuration}
+summarizes the model-specific settings.
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Fine-tuning configurations. $H$ denotes the predicted action-chunk
+horizon. Frame counts differ because motion-trimmed data remove idle initial
+prefixes for GR00T frozen-LLM and VLA-0.}
+\label{tab:training_configuration}
+\begin{tabular}{p{0.13\textwidth}p{0.18\textwidth}rccp{0.34\textwidth}}
+\toprule
+\textbf{Model} & \textbf{Initialization} & \textbf{Frames} & \textbf{$H$} &
+\textbf{Norm.} & \textbf{Updated components} \\
+\midrule
+$\pi_{0.5}$ & \texttt{lerobot/pi05\_base} & 612,733 & 50 & Quantile &
+PaliGemma backbone and action expert \\
+MolmoAct2 & \texttt{allenai/MolmoAct2} & 612,733 & 30 & Min--max &
+VLM and action expert; token embeddings frozen \\
+VLA-0 & \texttt{Qwen2.5-VL-3B} & 570,386 & 8 & Min--max &
+Full VLM fine-tuning with discretized action strings \\
+GR00T-N1.7 vision-only & \texttt{nvidia/GR00T-N1.7-3B} & 570,386 & 16 &
+Native & Visual and diffusion/action modules updated at $10^{-4}$; LLM frozen \\
+GR00T-N1.7 full FT & \texttt{nvidia/GR00T-N1.7-3B} & 612,733 & 16 &
+Native & Visual and diffusion/action modules plus LLM; LLM rate $10^{-5}$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{VLA-0 pipeline validation.}
+In a separate implementation check, our VLA-0 pipeline achieved 70\% mean
+success on a 400-demonstration, four-task SO-101 benchmark patterned after
+the authors' real-world study, compared with their reported 60\%
+\cite{goyal2025vla0}. Because the tasks, cameras, optimization, and
+checkpoint differed, this validates that the pipeline can produce a
+functional policy rather than constituting a controlled replication.\footnote{Configurations, checkpoints, and rollout videos:
+\url{https://justintiensmith.github.io/vla-research/2026/06/19/does-vla-0-really-work-reproducing-nvidias-results.html}}
+
+\subsection{Checkpoint Selection and Deployment Processing}
+
+Checkpoints were selected without consulting transfer outcomes. GR00T-N1.7
+uses synchronous inference without real-time chunking: each query produces
+16 six-dimensional absolute targets that are executed before the next
+query. To suppress high-frequency jitter, every executed non-gripper target
+is filtered with a causal exponential moving average (EMA),
+$\widetilde a_{t,j}=0.25a_{t,j}+0.75\widetilde a_{t-1,j}$. The state is
+initialized from the measured configuration, persists across chunk
+boundaries, and resets between rollouts; the gripper remains unfiltered.
+This follows the deployment procedure described by ANR Robot.\footnote{\url{https://www.anrrobot.com/robots/experiments/gr00t.html}}
+
+The GR00T full-finetune data retained static initial prefixes and the policy
+often remained stationary from its nominal start. We therefore applied a
+fixed manual upward displacement before execution. No intervention occurred
+after rollout onset. Comparisons consequently concern complete trained-and-deployed
+systems, including model-specific preprocessing and deployment choices.
+% TODO: insert the measured GR00T full-finetune displacement before submission.
+
+\section{Metrics and Statistical Analysis}
+
+The primary outcome is binary task success within 60 seconds on 50
+compositional-transfer trials per task. We report six task rates and the
+300-trial aggregate for each fully evaluated model. In-distribution,
+matched-manipulation, language, cross-task-object, and no-intervention
+conditions remain separate diagnostics. The \emph{transfer gap} is the
+matched-manipulation rate minus the primary-transfer rate. Language results
+separate transfer-prompt and matched-control paraphrases; cross-task results
+exclude the 20-trial State Recognition novel-object pilot; and
+no-intervention results are reported task by task.
+
+All binomial proportions receive two-sided Wilson 95\% confidence intervals
+($z=1.96$). Pairwise differences in aggregate primary transfer use paired,
+task-stratified cluster-bootstrap percentile intervals with 100,000
+resamples: scene families are sampled within task, shared between the two
+models, and the six task rates are averaged with equal weight.
+
+For the 56 multi-member primary families (25 Counting pairs, 25 Ordinal
+pairs, and six four-instruction Relational families),
+\emph{counterfactual-family consistency} requires success on every member.
+Qualitative failure annotations are not used for scoring or inference.
+
+\section{Results}
+
+\subsection{Primary Concept/Compositional Transfer}
+
+\begin{figure*}[t]
+    \centering
+    \IfFileExists{results.png}{%
+        \includegraphics[width=\textwidth]{results.png}%
+    }{%
+        \fbox{\parbox[c][0.25\textheight][c]{0.96\textwidth}{%
+            \centering
+            \textbf{Placeholder: task-level primary results}\\[0.5em]
+            Six task columns with in-distribution performance in the upper
+            row and concept/compositional-transfer performance in the lower
+            row.
+        }}%
+    }
+    \caption{Task-level in-distribution and primary
+    concept/compositional-transfer success. Bars show observed success rates,
+    and whiskers show two-sided Wilson 95\% confidence intervals
+    ($z=1.96$). Complete in-distribution evaluations contain 20 trials per
+    task and complete transfer evaluations contain 50 trials per task;
+    incomplete baselines use their available scored trials.}
+    \label{fig:task_transfer_results}
+\end{figure*}
+
+Across the 300 primary concept/compositional-transfer trials, MolmoAct2
+succeeded on 156 trials (52.0\%, Wilson 95\% CI: 46.4--57.6\%), compared
+with 133 trials for GR00T-N1.7 vision-only (44.3\%, 38.8--50.0\%) and 122
+for $\pi_{0.5}$ (40.7\%, 35.3--46.3\%). MolmoAct2 exceeded GR00T-N1.7
+vision-only by 7.7 percentage points (paired cluster-bootstrap 95\% CI:
+1.3--14.3 points) and $\pi_{0.5}$ by 11.3 points (4.5--18.1 points). The
+3.7-point GR00T--$\pi_{0.5}$ interval included zero ($-3.1$--10.2).
+
+Performance was task-dependent: GR00T led Relational Placement (39/50),
+while MolmoAct2's largest advantages over $\pi_{0.5}$ occurred in State and
+Referential tasks; $\pi_{0.5}$ led MolmoAct2 in Relational Placement. All
+three failed every primary Counting trial. Family consistency was likewise
+low: GR00T and MolmoAct2 completed 5/56 counterfactual families and
+$\pi_{0.5}$ 3/56.
+
+In-distribution success was 87/120 for MolmoAct2, 82/120 for $\pi_{0.5}$,
+and 81/120 for GR00T vision-only. Partial baselines achieved 25/119 for
+GR00T full-finetune and 0/72 for VLA-0. These incomplete baselines are shown
+but excluded from complete-model aggregates. In particular, the Spa-Bench
+VLA-0 checkpoint's lack of in-distribution competence is not interpreted as
+evidence about VLA-0's compositional-transfer capacity.
+
+\subsection{Matched Manipulation and Language Robustness}
+
+\begin{figure*}[t]
+    \centering
+    \IfFileExists{diagnostic_summary.pdf}{%
+        \includegraphics[width=\textwidth]{diagnostic_summary.pdf}%
+    }{%
+        \fbox{\parbox[c][0.24\textheight][c]{0.96\textwidth}{%
+            \centering
+            \textbf{Placeholder: aggregate diagnostic results}\\[0.5em]
+            Four panels: (a) primary transfer versus matched manipulation;
+            (b) transfer-prompt versus matched-control paraphrases; and
+            (c) strict cross-task-object transfer versus the State
+            Recognition novel-object pilot; (d) task-specific
+            no-intervention and Relational movement-required controls.
+        }}%
+    }
+    \caption{Diagnostic success for the three fully evaluated models.
+    Panels compare (a) primary transfer ($n=300$) with matched manipulation
+    ($n=120$); (b) transfer and matched-control paraphrases ($n=60$ each);
+    (c) strict cross-task-object transfer ($n=100$ across five tasks) with the
+    State Recognition novel-object pilot ($n=20$); and (d) task-specific
+    no-intervention and Relational Placement movement-required controls
+    ($n=20$ each). Bars show observed success rates; whiskers show two-sided
+    Wilson 95\% confidence intervals ($z=1.96$).}
+    \label{fig:diagnostic_summary}
+\end{figure*}
+
+Matched-manipulation success was 107/120 for MolmoAct2, 100/120 for
+$\pi_{0.5}$, and 98/120 for GR00T, yielding transfer gaps of 37.2, 42.7,
+and 37.3 points. Thus, transfer failures cannot be explained solely by
+recognition or manipulation difficulty. Transfer-prompt paraphrases produced
+30/60, 25/60, and 23/60 successes, respectively, close to canonical transfer,
+whereas matched-control paraphrases remained higher at 54/60, 52/60, and
+42/60. Wording variation therefore does not account for the transfer gap.
+
+\subsection{Cross-Task and Novel-Object Transfer}
+
+Strict cross-task-object success was similar in aggregate: 55/100 for
+GR00T, 54/100 for $\pi_{0.5}$, and 53/100 for MolmoAct2, although their
+task-level strengths differed. On the separate globally novel black-cup
+pilot, MolmoAct2 achieved 16/20, $\pi_{0.5}$ 14/20, and GR00T 9/20.
+
+\subsection{No-Intervention Behavior}
+
+No-intervention success was high when Counting goals already held (17/20
+for GR00T and 16/20 for each other model) and for already-satisfied
+Relational goals (19/20, 16/20, and 15/20 for GR00T, $\pi_{0.5}$, and
+MolmoAct2). However, Relational movement-required controls yielded only
+1/20, 3/20, and 1/20, indicating a strong non-initiation tendency. All
+models scored 0/20 in State and Ordinal no-intervention trials; Referential
+success was 0/20 for GR00T and $\pi_{0.5}$ and 3/20 for MolmoAct2. These
+task-specific outcomes are not pooled into a model ranking.
+
+\section{Discussion}
+
+Successful primary transfer shows that a policy combined familiar concepts,
+objects, and physical behaviors despite their selected binding being absent
+from fine-tuning. It does not show that concepts such as \emph{closed} or
+\emph{furthest} were learned from the 1,200 demonstrations; rather, it tests
+whether pretrained representations remain usable for scene-conditioned
+action after robot adaptation. Matched controls weaken a pure manipulation
+explanation, while counterfactual families reduce fixed object and position
+shortcuts.
+
+The benchmark intentionally uses one embodiment, workspace, object
+inventory, and short-horizon manipulation family. This control improves
+interpretability but does not measure open-world competence. Task families
+also instantiate different semantic and behavioral shifts, the cross-task
+conditions add a visual-role shift, and the State pilot uses a globally
+unseen object.
+
+No-intervention trials are zero-shot diagnostics because training contains
+no explicit no-operation demonstrations and the reason for not acting varies
+by task. Manual resets are nominal rather than exact despite fixed lighting,
+camera placement, written specifications, and matched collection order.
+These limitations motivate interpreting close comparisons cautiously.
+
+\section{Conclusion}
+
+We introduced Spa-Bench, a real-robot benchmark for testing whether VLAs can bind familiar semantic concepts to familiar objects and actions when their exact combination was absent from the fine-tuning language. The missing-cell design preserves object exposure and manipulation trajectories, while matched controls, paraphrases, counterfactual scenes, cross-task objects, and task-specific no-intervention trials help distinguish transfer from recognition, execution, and shortcut behavior.
+
+Among the three fully evaluated models, MolmoAct2 achieved the highest
+aggregate primary-transfer rate, followed by GR00T-N1.7 vision-only and
+$\pi_{0.5}$, but performance was strongly task-dependent and all three
+failed every primary Counting trial. Large matched-control--transfer gaps
+show that familiar manipulation does not guarantee successful
+concept--argument recombination. Scene-grounded compositional transfer in
+current VLAs therefore remains partial, brittle, and sensitive to task
+structure and object role.
+
+\input{bib}
+
+\end{document}

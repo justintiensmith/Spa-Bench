@@ -1,0 +1,46 @@
+{
+  "counting": {
+    "airplane_without_propellers": "airplane toy without propellers",
+    "blue_pen": "blue pen",
+    "green_pencil_sharpener": "green pencil sharpener",
+    "yellow_block": "yellow block"
+  },
+  "ordering": {
+    "airplane_with_propellers": "airplane toy with propellers",
+    "blue_tape_ball": "blue tape ball",
+    "green_highlighter": "green highlighter",
+    "yellow_pen": "yellow pen"
+  },
+  "referential_disambiguation": {
+    "airplane_with_propellers": "airplane toy with propellers",
+    "airplane_without_propellers": "airplane toy without propellers",
+    "crushed_coke_can": "crushed Coke can",
+    "crushed_pepsi_can": "crushed Pepsi can",
+    "green_pen": "green pen",
+    "green_pencil_sharpener": "green pencil sharpener",
+    "red_pencil_sharpener": "red pencil sharpener",
+    "yellow_pen": "yellow pen"
+  },
+  "relational_placement": {
+    "blue_block": "blue block",
+    "green_pen": "green pen",
+    "pink_marker": "pink marker",
+    "red_block": "red block"
+  },
+  "size_recognition": {
+    "crushed_pepsi_can": "crushed Pepsi can",
+    "green_block": "green block",
+    "juggling_ball": "juggling ball",
+    "red_pencil_sharpener": "red pencil sharpener"
+  },
+  "state_recognition": {
+    "brown_cup_a": "brown cup A",
+    "brown_cup_b": "brown cup B",
+    "glass_spice_container_a": "glass spice container A",
+    "glass_spice_container_b": "glass spice container B",
+    "white_cup_a": "white cup A",
+    "white_cup_b": "white cup B",
+    "yellow_white_striped_cup_a": "yellow-white striped cup A",
+    "yellow_white_striped_cup_b": "yellow-white striped cup B"
+  }
+}

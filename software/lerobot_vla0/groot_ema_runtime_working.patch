@@ -1,0 +1,350 @@
+diff --git a/src/lerobot/rollout/configs.py b/src/lerobot/rollout/configs.py
+index 44c76675..29e8cb69 100644
+--- a/src/lerobot/rollout/configs.py
++++ b/src/lerobot/rollout/configs.py
+@@ -254,6 +254,12 @@ class RolloutConfig:
+     fps: float = 30.0
+     duration: float = 0.0  # 0 = infinite (24/7 mode)
+     interpolation_multiplier: int = 1
++    # Optional deployment-time exponential moving average over action targets:
++    # filtered = alpha * target + (1 - alpha) * previous_filtered.
++    action_ema_alpha: float | None = None
++    # Joint-name fragments to leave unfiltered. Keeping the gripper responsive
++    # avoids weakening or delaying grasp closure when EMA is enabled.
++    action_ema_exclude: list[str] = field(default_factory=lambda: ["gripper"])
+     device: str | None = None
+     task: str = ""
+     display_data: bool = False
+@@ -286,6 +292,9 @@ class RolloutConfig:
+ 
+     def __post_init__(self):
+         """Validate config invariants and load the policy config from ``--policy.path``."""
++        if self.action_ema_alpha is not None and not 0 < self.action_ema_alpha <= 1:
++            raise ValueError(f"--action_ema_alpha must be in (0, 1], got {self.action_ema_alpha}")
++
+         # --- Strategy-specific validation ---
+         if isinstance(self.strategy, DAggerStrategyConfig) and self.teleop is None:
+             raise ValueError("DAgger strategy requires --teleop.type to be set")
+diff --git a/src/lerobot/rollout/strategies/base.py b/src/lerobot/rollout/strategies/base.py
+index e47b6520..bcf8dd30 100644
+--- a/src/lerobot/rollout/strategies/base.py
++++ b/src/lerobot/rollout/strategies/base.py
+@@ -65,7 +65,7 @@ class BaseStrategy(RolloutStrategy):
+             if self._handle_warmup(cfg.use_torch_compile, loop_start, control_interval):
+                 continue
+ 
+-            action_dict = send_next_action(obs_processed, obs, ctx, interpolator)
++            action_dict = send_next_action(obs_processed, obs, ctx, interpolator, self._action_filter)
+             self._log_telemetry(obs_processed, action_dict, ctx.runtime)
+ 
+             dt = time.perf_counter() - loop_start
+diff --git a/src/lerobot/rollout/strategies/core.py b/src/lerobot/rollout/strategies/core.py
+index 460ad12e..45d671ed 100644
+--- a/src/lerobot/rollout/strategies/core.py
++++ b/src/lerobot/rollout/strategies/core.py
+@@ -22,6 +22,7 @@ import time
+ from typing import TYPE_CHECKING
+ 
+ from lerobot.datasets.utils import DEFAULT_VIDEO_FILE_SIZE_IN_MB
++from lerobot.rollout.action_filter import EMAActionFilter
+ from lerobot.utils.action_interpolator import ActionInterpolator
+ from lerobot.utils.constants import OBS_STR
+ from lerobot.utils.feature_utils import build_dataset_frame
+@@ -49,11 +50,12 @@ class RolloutStrategy(abc.ABC):
+         self.config = config
+         self._engine: InferenceEngine | None = None
+         self._interpolator: ActionInterpolator | None = None
++        self._action_filter: EMAActionFilter | None = None
+         self._warmup_flushed: bool = False
+         self._cached_obs_processed: dict | None = None
+ 
+     def _init_engine(self, ctx: RolloutContext) -> None:
+-        """Attach the inference engine and action interpolator, then start the backend.
++        """Attach the inference engine and action dispatch helpers, then start the backend.
+ 
+         Creates an :class:`ActionInterpolator` from the config's
+         ``interpolation_multiplier`` and starts the inference engine.
+@@ -61,6 +63,16 @@ class RolloutStrategy(abc.ABC):
+         initialisation without duplicating code.
+         """
+         self._interpolator = ActionInterpolator(multiplier=ctx.runtime.cfg.interpolation_multiplier)
++        self._action_filter = EMAActionFilter(
++            alpha=ctx.runtime.cfg.action_ema_alpha,
++            exclude=ctx.runtime.cfg.action_ema_exclude,
++        )
++        if self._action_filter.enabled:
++            logger.info(
++                "Action EMA enabled (alpha=%.3f, excluded=%s)",
++                self._action_filter.alpha,
++                ctx.runtime.cfg.action_ema_exclude,
++            )
+         self._engine = ctx.policy.inference
+         logger.info("Starting inference engine...")
+         self._engine.reset()
+@@ -69,6 +81,11 @@ class RolloutStrategy(abc.ABC):
+         self._cached_obs_processed = None
+         logger.info("Inference engine started")
+ 
++    def _reset_action_filter(self) -> None:
++        """Reset action-filter state when a strategy crosses a control boundary."""
++        if self._action_filter is not None:
++            self._action_filter.reset()
++
+     def _process_observation_and_notify(self, processors: ProcessorContext, obs_raw: dict) -> dict:
+         """Run the observation processor and notify the engine — throttled to policy ticks.
+ 
+@@ -112,6 +129,7 @@ class RolloutStrategy(abc.ABC):
+             logger.info("Warmup complete — flushing stale state and resuming engine")
+             engine.reset()
+             interpolator.reset()
++            self._reset_action_filter()
+             self._warmup_flushed = True
+             engine.resume()
+         return False
+@@ -272,6 +290,7 @@ def send_next_action(
+     obs_raw: dict,
+     ctx: RolloutContext,
+     interpolator: ActionInterpolator,
++    action_filter: EMAActionFilter | None = None,
+ ) -> dict | None:
+     """Dispatch the next action to the robot.
+ 
+@@ -300,6 +319,8 @@ def send_next_action(
+     if len(interp) != len(ordered_keys):
+         raise ValueError(f"Interpolated tensor length ({len(interp)}) != action keys ({len(ordered_keys)})")
+     action_dict = {k: interp[i].item() for i, k in enumerate(ordered_keys)}
++    if action_filter is not None:
++        action_dict = action_filter.apply(action_dict, obs_processed, obs_raw)
+     processed = ctx.processors.robot_action_processor((action_dict, obs_raw))
+     ctx.hardware.robot_wrapper.send_action(processed)
+     return action_dict
+diff --git a/src/lerobot/rollout/strategies/dagger.py b/src/lerobot/rollout/strategies/dagger.py
+index 21d1e8e9..a041cf90 100644
+--- a/src/lerobot/rollout/strategies/dagger.py
++++ b/src/lerobot/rollout/strategies/dagger.py
+@@ -341,6 +341,7 @@ class DAggerStrategy(RolloutStrategy):
+ 
+         engine.reset()
+         interpolator.reset()
++        self._reset_action_filter()
+         events.reset()
+         engine.resume()
+ 
+@@ -415,7 +416,9 @@ class DAggerStrategy(RolloutStrategy):
+                         if self._handle_warmup(cfg.use_torch_compile, loop_start, control_interval):
+                             continue
+ 
+-                        action_dict = send_next_action(obs_processed, obs, ctx, interpolator)
++                        action_dict = send_next_action(
++                            obs_processed, obs, ctx, interpolator, self._action_filter
++                        )
+                         if action_dict is not None:
+                             self._log_telemetry(obs_processed, action_dict, ctx.runtime)
+                             last_action = ctx.processors.robot_action_processor((action_dict, obs))
+@@ -498,6 +501,7 @@ class DAggerStrategy(RolloutStrategy):
+ 
+         engine.reset()
+         interpolator.reset()
++        self._reset_action_filter()
+         events.reset()
+         engine.resume()
+ 
+@@ -597,7 +601,9 @@ class DAggerStrategy(RolloutStrategy):
+                         if self._handle_warmup(cfg.use_torch_compile, loop_start, control_interval):
+                             continue
+ 
+-                        action_dict = send_next_action(obs_processed, obs, ctx, interpolator)
++                        action_dict = send_next_action(
++                            obs_processed, obs, ctx, interpolator, self._action_filter
++                        )
+                         if action_dict is not None:
+                             self._log_telemetry(obs_processed, action_dict, ctx.runtime)
+                             last_action = ctx.processors.robot_action_processor((action_dict, obs))
+@@ -623,8 +629,8 @@ class DAggerStrategy(RolloutStrategy):
+     # State-machine transition side-effects
+     # ------------------------------------------------------------------
+ 
+-    @staticmethod
+     def _apply_transition(
++        self,
+         old_phase: DAggerPhase,
+         new_phase: DAggerPhase,
+         engine,
+@@ -687,6 +693,7 @@ class DAggerStrategy(RolloutStrategy):
+         elif new_phase == DAggerPhase.AUTONOMOUS:
+             logger.info("Resuming autonomous mode - resetting engine and interpolator")
+             interpolator.reset()
++            self._reset_action_filter()
+             engine.reset()
+             engine.resume()
+ 
+diff --git a/src/lerobot/rollout/strategies/episodic.py b/src/lerobot/rollout/strategies/episodic.py
+index 1f59b035..7433b0b5 100644
+--- a/src/lerobot/rollout/strategies/episodic.py
++++ b/src/lerobot/rollout/strategies/episodic.py
+@@ -137,6 +137,7 @@ class EpisodicStrategy(RolloutStrategy):
+             self._engine.set_task(task)
+         self._engine.reset()
+         self._interpolator.reset()
++        self._reset_action_filter()
+         self._cached_obs_processed = None
+         self._engine.resume()
+ 
+@@ -339,7 +340,7 @@ class EpisodicStrategy(RolloutStrategy):
+             if self._handle_warmup(ctx.runtime.cfg.use_torch_compile, loop_start, control_interval):
+                 continue
+ 
+-            action_dict = send_next_action(obs_processed, obs, ctx, interpolator)
++            action_dict = send_next_action(obs_processed, obs, ctx, interpolator, self._action_filter)
+ 
+             if action_dict is not None:
+                 obs_frame = build_dataset_frame(features, obs_processed, prefix=OBS_STR)
+diff --git a/src/lerobot/rollout/strategies/highlight.py b/src/lerobot/rollout/strategies/highlight.py
+index 385a9e2b..04c56cda 100644
+--- a/src/lerobot/rollout/strategies/highlight.py
++++ b/src/lerobot/rollout/strategies/highlight.py
+@@ -123,7 +123,7 @@ class HighlightStrategy(RolloutStrategy):
+                     if self._handle_warmup(cfg.use_torch_compile, loop_start, control_interval):
+                         continue
+ 
+-                    action_dict = send_next_action(obs_processed, obs, ctx, interpolator)
++                    action_dict = send_next_action(obs_processed, obs, ctx, interpolator, self._action_filter)
+ 
+                     if action_dict is not None:
+                         self._log_telemetry(obs_processed, action_dict, ctx.runtime)
+diff --git a/src/lerobot/rollout/strategies/sentry.py b/src/lerobot/rollout/strategies/sentry.py
+index 61e38aa6..7ac2bbc7 100644
+--- a/src/lerobot/rollout/strategies/sentry.py
++++ b/src/lerobot/rollout/strategies/sentry.py
+@@ -116,7 +116,7 @@ class SentryStrategy(RolloutStrategy):
+                     if self._handle_warmup(cfg.use_torch_compile, loop_start, control_interval):
+                         continue
+ 
+-                    action_dict = send_next_action(obs_processed, obs, ctx, interpolator)
++                    action_dict = send_next_action(obs_processed, obs, ctx, interpolator, self._action_filter)
+ 
+                     if action_dict is not None:
+                         self._log_telemetry(obs_processed, action_dict, ctx.runtime)
+diff --git a/src/lerobot/rollout/action_filter.py b/src/lerobot/rollout/action_filter.py
+new file mode 100644
+index 00000000..2c6519ae
+--- /dev/null
++++ b/src/lerobot/rollout/action_filter.py
+@@ -0,0 +1,116 @@
++# Copyright 2025 The HuggingFace Inc. team. All rights reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++"""Stateful deployment-time filtering for robot action targets."""
++
++from __future__ import annotations
++
++from collections.abc import Mapping, Sequence
++from numbers import Real
++
++import numpy as np
++import torch
++
++
++class EMAActionFilter:
++    """Apply an exponential moving average to scalar action targets.
++
++    The filter follows ``filtered = alpha * target + (1 - alpha) * previous``.
++    On the first action after construction or :meth:`reset`, ``previous`` is
++    initialized from the current observation when a matching key is available.
++    This avoids treating zero as the robot's initial pose.
++
++    Exclusions use case-insensitive substring matching, so an exclusion such as
++    ``"gripper"`` also matches an action key such as ``"gripper.pos"``.
++    """
++
++    def __init__(self, alpha: float | None = None, exclude: Sequence[str] = ()) -> None:
++        if alpha is not None and not 0 < alpha <= 1:
++            raise ValueError(f"EMA alpha must be in (0, 1], got {alpha}")
++
++        self.alpha = alpha
++        self.exclude = tuple(value.casefold() for value in exclude)
++        self._previous: dict[str, float] = {}
++
++    @property
++    def enabled(self) -> bool:
++        """Whether filtering is enabled."""
++        return self.alpha is not None
++
++    def reset(self) -> None:
++        """Forget previous targets so the next action starts from the measured pose."""
++        self._previous.clear()
++
++    def apply(
++        self,
++        action: Mapping[str, float],
++        *observations: Mapping[str, object],
++    ) -> dict[str, float]:
++        """Return a filtered copy of ``action``.
++
++        Observation mappings are searched in order when initializing each
++        action key. Missing or non-scalar observations fall back to the first
++        target itself, making the first command a no-op for that key's filter
++        state rather than introducing an arbitrary jump.
++        """
++        alpha = self.alpha
++        if alpha is None:
++            return dict(action)
++
++        filtered: dict[str, float] = {}
++        for key, value in action.items():
++            target = self._as_scalar(value)
++            if target is None:
++                raise TypeError(f"EMA action filtering requires scalar values, got {key}={value!r}")
++
++            if self._is_excluded(key):
++                filtered[key] = target
++                continue
++
++            previous = self._previous.get(key)
++            if previous is None:
++                previous = self._find_observed_value(key, observations)
++            if previous is None:
++                previous = target
++
++            output = alpha * target + (1 - alpha) * previous
++            self._previous[key] = output
++            filtered[key] = output
++
++        return filtered
++
++    def _is_excluded(self, key: str) -> bool:
++        normalized_key = key.casefold()
++        return any(value in normalized_key for value in self.exclude)
++
++    @classmethod
++    def _find_observed_value(
++        cls,
++        key: str,
++        observations: Sequence[Mapping[str, object]],
++    ) -> float | None:
++        for observation in observations:
++            if key in observation and (value := cls._as_scalar(observation[key])) is not None:
++                return value
++        return None
++
++    @staticmethod
++    def _as_scalar(value: object) -> float | None:
++        if isinstance(value, Real):
++            return float(value)
++        if isinstance(value, np.ndarray) and value.size == 1:
++            return float(value.item())
++        if isinstance(value, torch.Tensor) and value.numel() == 1:
++            return float(value.item())
++        return None
+

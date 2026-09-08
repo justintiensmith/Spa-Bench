@@ -1,0 +1,490 @@
+[
+  {
+    "name": "Paraphrasing Comparison v3",
+    "usedRange": "A1:T8",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "width": 768,
+        "height": 384,
+        "barOptions": {},
+        "series": [
+          {
+            "name": "Original",
+            "formula": "'Paraphrasing Comparison v3'!$S$2:$S$8",
+            "categoryFormula": "'Paraphrasing Comparison v3'!$Q$2:$R$8",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "Paraphrased",
+            "formula": "'Paraphrasing Comparison v3'!$T$2:$T$8",
+            "categoryFormula": "'Paraphrasing Comparison v3'!$Q$2:$R$8",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": "Preliminary Task Results",
+    "usedRange": "A1:U1048574",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "barOptions": {},
+        "series": [
+          {
+            "name": "pi0.5 Trained on Spatially Constrained Dataset Model",
+            "formula": "'Preliminary Task Results'!$B$2:$B$6",
+            "categoryFormula": "'Preliminary Task Results'!$A$2:$A$6",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "pi0.5 trained on the constrained dataset and then fine-tuned on the union",
+            "formula": "'Preliminary Task Results'!$C$2:$C$6",
+            "categoryFormula": "'Preliminary Task Results'!$A$2:$A$6",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "pi0.5 Trained on Spatially Varied Dataset",
+            "formula": "'Preliminary Task Results'!$D$2:$D$6",
+            "categoryFormula": "'Preliminary Task Results'!$A$2:$A$6",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "pi0.5 trained on union of Spatially Constrained  and Spatially Varied Dataset",
+            "formula": "'Preliminary Task Results'!$E$2:$E$6",
+            "categoryFormula": "'Preliminary Task Results'!$A$2:$A$6",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": "No Movement",
+    "usedRange": "A1:S8",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "width": 1920,
+        "height": 384,
+        "barOptions": {},
+        "series": [
+          {
+            "name": "GR00T Frozen LLM",
+            "formula": "'No Movement'!$B$2:$B$6",
+            "categoryFormula": "'No Movement'!$A$2:$A$6",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "$\\pi_{0.5}$",
+            "formula": "'No Movement'!$C$2:$C$6",
+            "categoryFormula": "'No Movement'!$A$2:$A$6",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "MolmoAct2",
+            "formula": "'No Movement'!$D$2:$D$6",
+            "categoryFormula": "'No Movement'!$A$2:$A$6",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": "Relational Movement No Movement",
+    "usedRange": "A1:M8",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "width": 768,
+        "height": 384,
+        "barOptions": {},
+        "series": [
+          {
+            "name": "GR00T Frozen LLM",
+            "formula": "'Relational Movement No Movement'!$B$2:$B$3",
+            "categoryFormula": "'Relational Movement No Movement'!$A$2:$A$3",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "$\\pi_{0.5}$",
+            "formula": "'Relational Movement No Movement'!$C$2:$C$3",
+            "categoryFormula": "'Relational Movement No Movement'!$A$2:$A$3",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "MolmoAct2",
+            "formula": "'Relational Movement No Movement'!$D$2:$D$3",
+            "categoryFormula": "'Relational Movement No Movement'!$A$2:$A$3",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": "Cross Task Object Chart v2",
+    "usedRange": "A1:M8",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "width": 768,
+        "height": 384,
+        "barOptions": {},
+        "series": [
+          {
+            "name": "GR00T Frozen LLM",
+            "formula": "'Cross Task Object Chart v2'!$B$2:$B$3",
+            "categoryFormula": "'Cross Task Object Chart v2'!$A$2:$A$3",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "$\\pi_{0.5}$",
+            "formula": "'Cross Task Object Chart v2'!$C$2:$C$3",
+            "categoryFormula": "'Cross Task Object Chart v2'!$A$2:$A$3",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "MolmoAct2",
+            "formula": "'Cross Task Object Chart v2'!$D$2:$D$3",
+            "categoryFormula": "'Cross Task Object Chart v2'!$A$2:$A$3",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": "Familiar Spatial Task Chart",
+    "usedRange": "A1:AE8",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "width": 2304,
+        "height": 384,
+        "barOptions": {},
+        "series": [
+          {
+            "name": "VLA-0",
+            "formula": "'Familiar Spatial Task Chart'!$B$2:$B$7",
+            "categoryFormula": "'Familiar Spatial Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "GR00T-N1.7 Full FT",
+            "formula": "'Familiar Spatial Task Chart'!$C$2:$C$7",
+            "categoryFormula": "'Familiar Spatial Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "GR00T-N1.7 Frozen LLM",
+            "formula": "'Familiar Spatial Task Chart'!$D$2:$D$7",
+            "categoryFormula": "'Familiar Spatial Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "Pi0.5",
+            "formula": "'Familiar Spatial Task Chart'!$E$2:$E$7",
+            "categoryFormula": "'Familiar Spatial Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "MolmoAct2",
+            "formula": "'Familiar Spatial Task Chart'!$F$2:$F$7",
+            "categoryFormula": "'Familiar Spatial Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "VLA-0",
+            "formula": "'Familiar Spatial Task Chart'!$B$2:$B$7",
+            "categoryFormula": "'Familiar Spatial Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": "Matched Manipulation Task Chart",
+    "usedRange": "A1:S8",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "width": 2304,
+        "height": 384,
+        "barOptions": {},
+        "series": [
+          {
+            "name": "GR00T-N1.7 Vision",
+            "formula": "'Matched Manipulation Task Chart'!$B$2:$B$7",
+            "categoryFormula": "'Matched Manipulation Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "Pi0.5",
+            "formula": "'Matched Manipulation Task Chart'!$C$2:$C$7",
+            "categoryFormula": "'Matched Manipulation Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "MolmoAct2",
+            "formula": "'Matched Manipulation Task Chart'!$D$2:$D$7",
+            "categoryFormula": "'Matched Manipulation Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": "Novel Spatial Task Chart",
+    "usedRange": "A1:M8",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "width": 2304,
+        "height": 384,
+        "barOptions": {},
+        "series": [
+          {
+            "name": "GR00T-N1.7",
+            "formula": "'Novel Spatial Task Chart'!$B$2:$B$7",
+            "categoryFormula": "'Novel Spatial Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "Pi0.5",
+            "formula": "'Novel Spatial Task Chart'!$C$2:$C$7",
+            "categoryFormula": "'Novel Spatial Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "MolmoAct2",
+            "formula": "'Novel Spatial Task Chart'!$D$2:$D$7",
+            "categoryFormula": "'Novel Spatial Task Chart'!$A$2:$A$7",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": "Paraphrasing Comparison v2",
+    "usedRange": "A1:P8",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "width": 768,
+        "height": 384,
+        "barOptions": {},
+        "series": [
+          {
+            "name": "Original",
+            "formula": "'Paraphrasing Comparison v2'!$O$2:$O$8",
+            "categoryFormula": "'Paraphrasing Comparison v2'!$M$2:$N$8",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "Paraphrased",
+            "formula": "'Paraphrasing Comparison v2'!$P$2:$P$8",
+            "categoryFormula": "'Paraphrasing Comparison v2'!$M$2:$N$8",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": "Emergent Skills Data",
+    "usedRange": "A1:E7",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "width": 768,
+        "height": 384,
+        "barOptions": {},
+        "series": [
+          {
+            "name": "GR00T-N1.7",
+            "formula": "'Emergent Skills Data'!$B$2:$B$4",
+            "categoryFormula": "'Emergent Skills Data'!$A$2:$A$4",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "Pi0.5",
+            "formula": "'Emergent Skills Data'!$C$2:$C$4",
+            "categoryFormula": "'Emergent Skills Data'!$A$2:$A$4",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "MolmoAct2",
+            "formula": "'Emergent Skills Data'!$D$2:$D$4",
+            "categoryFormula": "'Emergent Skills Data'!$A$2:$A$4",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": " Paraphrasing Comparison v1",
+    "usedRange": "A1:E7",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "width": 768,
+        "height": 384,
+        "barOptions": {},
+        "series": [
+          {
+            "name": "GR00T-N1.7",
+            "formula": "' Paraphrasing Comparison v1'!$B$2:$B$5",
+            "categoryFormula": "' Paraphrasing Comparison v1'!$A$2:$A$5",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "Pi0.5",
+            "formula": "' Paraphrasing Comparison v1'!$C$2:$C$5",
+            "categoryFormula": "' Paraphrasing Comparison v1'!$A$2:$A$5",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "MolmoAct2",
+            "formula": "' Paraphrasing Comparison v1'!$D$2:$D$5",
+            "categoryFormula": "' Paraphrasing Comparison v1'!$A$2:$A$5",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  },
+  {
+    "name": "Sheet2",
+    "usedRange": "A1:AC13",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": "Overall Success Rate by Evaluation Track",
+        "barOptions": {},
+        "series": [
+          {
+            "name": "MolmoAct2",
+            "formula": "'[1]Chart Data'!$B$5:$B$7",
+            "categoryFormula": "'[1]Chart Data'!$A$5:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "π0.5",
+            "formula": "'[1]Chart Data'!$C$5:$C$7",
+            "categoryFormula": "'[1]Chart Data'!$A$5:$A$7",
+            "fill": {},
+            "errorBars": {}
+          },
+          {
+            "name": "GR00T Vision",
+            "formula": "'[1]Chart Data'!$D$5:$D$7",
+            "categoryFormula": "'[1]Chart Data'!$A$5:$A$7",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 1
+  },
+  {
+    "name": "Pi0.5 Robustness",
+    "usedRange": "A1:C12",
+    "chartCount": 1,
+    "charts": [
+      {
+        "type": "bar",
+        "title": {},
+        "barOptions": {},
+        "series": [
+          {
+            "name": "Pi0.5",
+            "formula": "'Pi0.5 Robustness'!$B$2:$B$9",
+            "categoryFormula": "'Pi0.5 Robustness'!$A$2:$A$9",
+            "fill": {},
+            "errorBars": {}
+          }
+        ]
+      }
+    ],
+    "tableCount": 0
+  }
+]

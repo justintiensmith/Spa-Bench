@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use Spa-Bench, please cite the accompanying MSc thesis and this repository."
+title: "Spa-Bench: A Real-Robot Benchmark for Scene-Grounded Compositional Transfer in Vision-Language-Action Models"
+type: software
+authors:
+  - family-names: "Tien-Smith"
+    given-names: "Justin"
+version: 0.1.0
+date-released: 2026-09-08
+abstract: >-
+  Spa-Bench evaluates scene-grounded semantic and compositional transfer in
+  vision-language-action policies using an SO-101 robot, controlled missing-cell
+  fine-tuning data, and matched physical evaluation scenes.
+keywords:
+  - robotics
+  - vision-language-action models
+  - compositional generalization
+  - real-robot evaluation
+  - LeRobot
+

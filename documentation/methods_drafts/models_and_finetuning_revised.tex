@@ -1,0 +1,97 @@
+% Preamble requirements:
+% \usepackage{amsmath}
+% \usepackage{booktabs}
+% \usepackage{url} % or hyperref
+
+\section{Models and Fine-Tuning}
+\label{sec:models_and_finetuning}
+
+We evaluate five adapted policies drawn from four VLA families: VLA-0 \cite{goyal2025vla0}, MolmoAct2 \cite{fang2026molmoact2}, $\pi_{0.5}$ \cite{black2025pi05}, and two adaptations of GR00T-N1.7 \cite{grootn17}. The two GR00T conditions use the same pretrained architecture but differ in which components are updated. In the \emph{GR00T frozen-LLM} condition, the language model is frozen while the visual encoder, multimodal projector, VLLN module, and diffusion action model are updated. In the \emph{GR00T full-finetune} condition, the language model is updated as well. We use ``frozen-LLM'' rather than ``vision-only'' because the former condition still consumes language and updates modules beyond the visual encoder.
+
+\subsection{Observations and Training Data}
+
+The source dataset contains 1,200 demonstrations, 612,733 frames, and approximately 5~h 40~min of robot interaction. Each policy receives a six-dimensional robot state and two RGB streams: a fixed middle camera facing the robot and a wrist-mounted camera. Both streams are recorded at $480\times640$ pixels and are converted to each policy's native input resolution during preprocessing. Although the released source dataset includes left, right, and top-down views, these views are not supplied to the policies. This keeps the visual input consistent across models and avoids the additional inference cost of three unused streams.
+
+The semantic content and episode set are shared across models, but the frame-level preprocessing is not identical. MolmoAct2 and $\pi_{0.5}$ use the full-length source episodes. GR00T full-finetune uses a two-camera derivative containing the same 612,733 frames. GR00T frozen-LLM and VLA-0 instead use a motion-trimmed derivative containing 570,386 frames. To construct this derivative, motion onset is defined as the first of five consecutive frames whose maximum joint displacement from the five-frame initial baseline exceeds 2.0 motor-position units; five frames immediately preceding onset are retained. This removes 42,333 idle-prefix frames from 1,176 episodes. Fourteen additional frames are removed to repair terminal camera--state alignment in two episodes, for 42,347 removed frames in total (6.91\%). Prompts, actions, states, and episode identities are otherwise unchanged.
+
+We introduced motion trimming after preliminary training showed that the shorter-horizon policies could remain at the static initial configuration rather than initiate the task. The preprocessing difference is therefore a model-specific adaptation choice, not a controlled architectural ablation. We report it explicitly because it changes the temporal distribution of the training observations.
+
+\subsection{Optimization and Model-Specific Adaptation}
+
+All runs use four NVIDIA GH200 Grace Hopper Superchips and a per-device batch size of 24, giving a global batch size of 96. We evaluate the checkpoint at the end of epoch 12 for every model. Because an epoch contains a different number of batches after motion trimming, epoch 12 corresponds to 76,596 optimizer updates for MolmoAct2, $\pi_{0.5}$, and GR00T full-finetune, but 71,304 updates for GR00T frozen-LLM. The saved VLA-0 configuration records the epoch but not the corresponding optimizer-update count. The public MolmoAct2 and $\pi_{0.5}$ repositories currently expose runs continued through epoch 16; all results in this paper use their epoch-12 checkpoints.
+
+Table~\ref{tab:training_configuration} summarizes the resolved configurations. MolmoAct2 is initialized from the generic multi-embodiment checkpoint and jointly updates its VLM and continuous-action expert while keeping the token embedding layer frozen. It uses a 30-action chunk and min--max normalization for actions and states. We use a base learning rate of $10^{-5}$, with rates of $5\times10^{-6}$ for the vision transformer and connector and $5\times10^{-5}$ for the action expert. Training uses AdamW with zero weight decay, 200 warm-up updates, and cosine decay.
+
+$\pi_{0.5}$ is initialized from \texttt{lerobot/pi05\_base}. Neither the vision encoder nor the remaining PaliGemma backbone is frozen, and the action expert is trained jointly with the vision-language backbone. It predicts 50-action chunks and uses quantile normalization for actions and states. Training uses AdamW with a learning rate of $2.5\times10^{-5}$, weight decay of 0.01, 1,000 warm-up updates, and cosine decay.
+
+VLA-0 is initialized from \texttt{Qwen/Qwen2.5-VL-3B-Instruct} and fully fine-tunes the Qwen backbone without LoRA or QLoRA. It conditions on the robot state and represents each eight-step action chunk as discretized text: each action dimension is min--max scaled and quantized into 1,000 bins. Training uses AdamW with a learning rate of $5\times10^{-6}$, weight decay of 0.01, and cosine annealing. Its native preprocessing resizes the two camera streams to $224\times224$ pixels and applies random cropping and color jitter during training.
+
+Both GR00T variants are initialized from \texttt{nvidia/GR00T-N1.7-3B} and predict 16-action chunks. The frozen-LLM variant updates the visual encoder, multimodal projector, VLLN module, and diffusion action model at a learning rate of $10^{-4}$ while holding the language model fixed. The full-finetune variant updates all of these components, including the language model, at $10^{-5}$. Both use AdamW with weight decay $10^{-5}$, a 5\% warm-up followed by cosine decay, and the GR00T-native state/action processing represented as identity normalization in the resolved LeRobot configuration.
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\caption{Resolved model adaptation settings. ``Full'' and ``trimmed'' refer to the 612,733-frame and 570,386-frame training variants, respectively; $H$ is the predicted action horizon. All reported evaluations use epoch-12 checkpoints. A dash indicates that the saved configuration does not expose an update count.}
+\label{tab:training_configuration}
+\begin{tabular}{p{0.12\textwidth} p{0.14\textwidth} p{0.075\textwidth} p{0.08\textwidth} p{0.04\textwidth} p{0.30\textwidth} p{0.14\textwidth}}
+\toprule
+\textbf{Model} & \textbf{Initialization} & \textbf{Frames} & \textbf{Epoch / updates} & \textbf{$H$} & \textbf{Updated components} & \textbf{Action/state processing} \\
+\midrule
+$\pi_{0.5}$
+& \texttt{lerobot/pi05\_base}
+& Full
+& 12 / 76,596
+& 50
+& PaliGemma vision-language backbone and action expert
+& Quantile normalization \\
+
+MolmoAct2
+& \texttt{allenai/MolmoAct2}
+& Full
+& 12 / 76,596
+& 30
+& VLM and action expert; token embedding layer frozen
+& Min--max normalization \\
+
+VLA-0
+& Qwen2.5-VL-3B-Instruct
+& Trimmed
+& 12 / ---
+& 8
+& Full Qwen backbone; no LoRA or QLoRA
+& Min--max scaling; 1,000 text bins \\
+
+GR00T frozen-LLM
+& GR00T-N1.7-3B
+& Trimmed
+& 12 / 71,304
+& 16
+& Visual encoder, projector, VLLN, and diffusion model; LLM frozen
+& GR00T-native processing \\
+
+GR00T full-finetune
+& GR00T-N1.7-3B
+& Full
+& 12 / 76,596
+& 16
+& LLM, visual encoder, projector, VLLN, and diffusion model
+& GR00T-native processing \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Checkpoint Selection and Deployment-Time Processing}
+
+Checkpoint selection is fixed at epoch 12 and is not based on performance on the held-out real-robot transfer trials. The evaluated epoch-12 VLA-0, GR00T frozen-LLM, and GR00T full-finetune artifacts are publicly available.\footnote{\url{https://huggingface.co/mattpidden/vla0-justin-epoch12}; \url{https://huggingface.co/justintiensmith/groot_multi_gpu_v4}; \url{https://huggingface.co/justintiensmith/groot_multi_gpu_v2}.} The public MolmoAct2 and $\pi_{0.5}$ repositories currently default to their epoch-16 weights, although the reported results use the locally retained epoch-12 checkpoints.\footnote{\url{https://huggingface.co/justintiensmith/molmoact2_VLA_Reasoning_Training_Dataset_1200}; \url{https://huggingface.co/justintiensmith/pi05_v3_VLA_Reasoning_Training_Dataset_1200}.} We will publish those evaluated checkpoints or cite immutable epoch-12 revisions before archival publication.
+
+Raw GR00T action targets exhibited high-frequency jitter that prevented reliable grasp execution. We therefore apply the same deterministic exponential moving-average (EMA) filter during rollouts of both GR00T variants:
+\begin{equation}
+    \widetilde{\mathbf{a}}_t
+    = \alpha\mathbf{a}_t + (1-\alpha)\widetilde{\mathbf{a}}_{t-1},
+\end{equation}
+where the filter state is initialized from the observed joint state and reset at the beginning of each rollout. The gripper channel is excluded so that grasp closure is not delayed. The evaluated value of $\alpha$ was \textbf{[TO FILL: EMA coefficient]}. This is a deployment-time controller modification rather than a training operation, and it is applied only to GR00T.
+
+The GR00T full-finetune model was trained on the untrimmed episodes and frequently failed to leave the nominal static start state. For this condition only, the reported evaluation uses a small manual upward displacement of the arm immediately before autonomous policy execution, intended to place the robot just beyond the static prefix. No human correction is provided after the rollout begins. Because the displacement magnitude was not encoded in the saved model configuration, we report \textbf{[INSERT THE APPROXIMATE JOINT OR END-EFFECTOR DISPLACEMENT, IF RECORDED]}; if it was not logged, we identify this as a protocol limitation. Neither GR00T frozen-LLM nor VLA-0 requires this initialization assist after training on the motion-trimmed episodes.
+
+These model-specific choices are held fixed across all task families and evaluation conditions for the affected model. Accordingly, comparisons in this paper concern complete adapted policy systems---including pretrained weights, action horizon, normalization, preprocessing, and deployment controller---and do not isolate the causal effect of any individual architectural component.

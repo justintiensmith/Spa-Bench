@@ -1,0 +1,133 @@
+{
+  "Novel": {
+    "scope": "Novel spatial grounding failures across the three fully evaluated models",
+    "total": 489,
+    "rows": [
+      {
+        "Failure Mode": "Wrong target",
+        "Count": 255,
+        "Share": 0.5214723926380368,
+        "CI Lower": 0.4772013548677656,
+        "CI Upper": 0.5654086845444918
+      },
+      {
+        "Failure Mode": "No action",
+        "Count": 155,
+        "Share": 0.3169734151329243,
+        "CI Lower": 0.277295098533405,
+        "CI Upper": 0.35950504171449604
+      },
+      {
+        "Failure Mode": "Correct target, incorrect spatial outcome",
+        "Count": 36,
+        "Share": 0.0736196319018405,
+        "CI Lower": 0.0536483438820147,
+        "CI Upper": 0.1002380163603025
+      },
+      {
+        "Failure Mode": "Grasp failure",
+        "Count": 24,
+        "Share": 0.049079754601226995,
+        "CI Lower": 0.0332001420534119,
+        "CI Upper": 0.07198903028918253
+      },
+      {
+        "Failure Mode": "Premature release or dropped object",
+        "Count": 8,
+        "Share": 0.016359918200409,
+        "CI Lower": 0.00831252103912341,
+        "CI Upper": 0.03194706743717404
+      },
+      {
+        "Failure Mode": "Release/retention failure",
+        "Count": 3,
+        "Share": 0.006134969325153374,
+        "CI Lower": 0.002088553804686393,
+        "CI Upper": 0.017880539713393248
+      },
+      {
+        "Failure Mode": "Control drift or instability",
+        "Count": 5,
+        "Share": 0.010224948875255624,
+        "CI Lower": 0.004375109204153987,
+        "CI Upper": 0.02371018229721278
+      },
+      {
+        "Failure Mode": "Timeout or incomplete execution",
+        "Count": 3,
+        "Share": 0.006134969325153374,
+        "CI Lower": 0.002088553804686393,
+        "CI Upper": 0.017880539713393248
+      }
+    ]
+  },
+  "All": {
+    "scope": "All failed rollouts across every evaluation condition and model",
+    "total": 1365,
+    "rows": [
+      {
+        "Failure Mode": "Wrong target",
+        "Count": 545,
+        "Share": 0.3992673992673993,
+        "CI Lower": 0.37360366127619793,
+        "CI Upper": 0.4254965414061285
+      },
+      {
+        "Failure Mode": "No action",
+        "Count": 297,
+        "Share": 0.2175824175824176,
+        "CI Lower": 0.1965026333171122,
+        "CI Upper": 0.240247389475883
+      },
+      {
+        "Failure Mode": "Correct target, incorrect spatial outcome",
+        "Count": 114,
+        "Share": 0.08351648351648351,
+        "CI Lower": 0.06998237444472191,
+        "CI Upper": 0.09938828173638771
+      },
+      {
+        "Failure Mode": "Grasp failure",
+        "Count": 128,
+        "Share": 0.09377289377289377,
+        "CI Lower": 0.07942775274283768,
+        "CI Upper": 0.1103981555287987
+      },
+      {
+        "Failure Mode": "Premature release or dropped object",
+        "Count": 24,
+        "Share": 0.017582417582417582,
+        "CI Lower": 0.01184336506044141,
+        "CI Upper": 0.02602924196728188
+      },
+      {
+        "Failure Mode": "Release/retention failure",
+        "Count": 14,
+        "Share": 0.010256410256410256,
+        "CI Lower": 0.006119224048553474,
+        "CI Upper": 0.017142488628793563
+      },
+      {
+        "Failure Mode": "Control drift or instability",
+        "Count": 18,
+        "Share": 0.013186813186813187,
+        "CI Lower": 0.008357325973683508,
+        "CI Upper": 0.02074874444381403
+      },
+      {
+        "Failure Mode": "Timeout or incomplete execution",
+        "Count": 27,
+        "Share": 0.01978021978021978,
+        "CI Lower": 0.013629224236940378,
+        "CI Upper": 0.02862665109589579
+      },
+      {
+        "Failure Mode": "Unnecessary intervention",
+        "Count": 198,
+        "Share": 0.14505494505494507,
+        "CI Lower": 0.12736866698373103,
+        "CI Upper": 0.16473350174053922
+      }
+    ]
+  }
+}

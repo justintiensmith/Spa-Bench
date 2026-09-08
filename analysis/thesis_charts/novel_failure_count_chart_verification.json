@@ -1,0 +1,71 @@
+{
+  "source": "/Users/justintiensmith/Documents/lerobot/outputs/01a0678e-4e7e-7a31-b018-7fba72ab9fe5/MSc_Thesis_Bar_Charts_with_Task_Failure_Profiles.xlsx",
+  "output": "/Users/justintiensmith/Documents/lerobot/outputs/01a0678e-4e7e-7a31-b018-7fba72ab9fe5/MSc_Thesis_Bar_Charts_with_Novel_Failure_Counts.xlsx",
+  "new_sheet": "Novel Failure Counts by Task",
+  "task_order": [
+    "Counting",
+    "Ordinal Position",
+    "Relational Placement",
+    "Physical State",
+    "Relative Size",
+    "Referential Description"
+  ],
+  "failure_counts": [
+    [
+      50,
+      50,
+      50
+    ],
+    [
+      29,
+      27,
+      23
+    ],
+    [
+      11,
+      14,
+      25
+    ],
+    [
+      33,
+      32,
+      12
+    ],
+    [
+      21,
+      23,
+      18
+    ],
+    [
+      23,
+      32,
+      16
+    ]
+  ],
+  "task_totals": [
+    150,
+    79,
+    50,
+    77,
+    62,
+    71
+  ],
+  "model_totals": {
+    "GR00T Frozen LLM": 167,
+    "Pi0.5": 178,
+    "MolmoAct2": 144
+  },
+  "grand_total": 489,
+  "chart_type": "stacked column",
+  "chart_scale": [
+    0,
+    150
+  ],
+  "model_colors": {
+    "GR00T Frozen LLM": "D95140",
+    "Pi0.5": "59A55B",
+    "MolmoAct2": "5383ED"
+  },
+  "existing_sheets_unchanged": true,
+  "formula_errors": []
+}

@@ -1,0 +1,44 @@
+% Requires in the paper preamble:
+% \usepackage{tikz}
+% \usetikzlibrary{matrix,positioning}
+% \definecolor{ObservedCell}{HTML}{DCEAD7}
+% \definecolor{HeldOutCell}{HTML}{F4D0CC}
+
+\begin{figure}[t]
+    \centering
+    \begin{tikzpicture}[
+        cell/.style={
+            draw=black!35,
+            minimum height=8.5mm,
+            minimum width=25mm,
+            align=center,
+            font=\footnotesize
+        }
+    ]
+        \matrix (m) [
+            matrix of nodes,
+            nodes in empty cells,
+            column sep=-\pgflinewidth,
+            row sep=-\pgflinewidth,
+            row 1/.style={nodes={font=\footnotesize\bfseries,draw=none}},
+            column 1/.style={nodes={font=\footnotesize\bfseries,draw=none}}
+        ] {
+            & Other training objects & Green block \\
+            \emph{smallest} & |[cell,fill=ObservedCell]| Observed & |[cell,fill=ObservedCell]| Observed \\
+            \emph{largest}  & |[cell,fill=ObservedCell]| Observed & |[cell,fill=HeldOutCell,dashed,draw=black!70]| \textbf{Withheld} \\
+        };
+
+        \node[
+            below=4mm of m,
+            align=center,
+            font=\scriptsize,
+            text width=0.86\columnwidth
+        ] (masked) {The green block and the corresponding pick-and-place trajectory remain in training under a direct-name prompt, e.g., ``Move the green block into the bowl.''};
+
+        \draw[->,semithick,black!60]
+            (m-3-3.south) -- ++(0,-2mm) -| (masked.north east);
+    \end{tikzpicture}
+    \caption{Schematic of one missing cell in Size Recognition. Training explicitly pairs \emph{largest} with other objects and pairs the green block with \emph{smallest}, but never pairs \emph{largest} with the green block. The withheld concept--argument binding is evaluated even though the concept, object identity, and physical trajectory each remain represented in training.}
+    \label{fig:missing_cell_matrix}
+\end{figure}
+

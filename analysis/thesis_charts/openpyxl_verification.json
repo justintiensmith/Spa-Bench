@@ -1,0 +1,282 @@
+{
+  "zip_integrity_error": null,
+  "sheets": [
+    "Paraphrasing Comparison v3",
+    "Preliminary Task Results",
+    "No Movement",
+    "Relational Movement No Movement",
+    "Cross Task Object Chart v2",
+    "Familiar Spatial Task Chart",
+    "Matched Manipulation Task Chart",
+    "Novel Spatial Task Chart",
+    "Paraphrasing Comparison v2",
+    "Emergent Skills Data",
+    " Paraphrasing Comparison v1",
+    "Sheet2",
+    "Pi0.5 Robustness",
+    "Failure Analysis - Novel",
+    "Failure Analysis - All"
+  ],
+  "all_target_series_have_custom_ci": true,
+  "formula_errors": [],
+  "chart_checks": {
+    "Paraphrasing Comparison v3": [
+      [
+        {
+          "value_formula": "'Paraphrasing Comparison v3'!$S$2:$S$8",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Paraphrasing Comparison v3'!$U$2:$U$8",
+          "plus_formula": "'Paraphrasing Comparison v3'!$V$2:$V$8"
+        },
+        {
+          "value_formula": "'Paraphrasing Comparison v3'!$T$2:$T$8",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Paraphrasing Comparison v3'!$W$2:$W$8",
+          "plus_formula": "'Paraphrasing Comparison v3'!$X$2:$X$8"
+        }
+      ]
+    ],
+    "No Movement": [
+      [
+        {
+          "value_formula": "'No Movement'!$B$2:$B$6",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'No Movement'!$N$2:$N$6",
+          "plus_formula": "'No Movement'!$O$2:$O$6"
+        },
+        {
+          "value_formula": "'No Movement'!$C$2:$C$6",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'No Movement'!$P$2:$P$6",
+          "plus_formula": "'No Movement'!$Q$2:$Q$6"
+        },
+        {
+          "value_formula": "'No Movement'!$D$2:$D$6",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'No Movement'!$R$2:$R$6",
+          "plus_formula": "'No Movement'!$S$2:$S$6"
+        }
+      ]
+    ],
+    "Relational Movement No Movement": [
+      [
+        {
+          "value_formula": "'Relational Movement No Movement'!$B$2:$B$3",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Relational Movement No Movement'!$N$2:$N$3",
+          "plus_formula": "'Relational Movement No Movement'!$O$2:$O$3"
+        },
+        {
+          "value_formula": "'Relational Movement No Movement'!$C$2:$C$3",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Relational Movement No Movement'!$P$2:$P$3",
+          "plus_formula": "'Relational Movement No Movement'!$Q$2:$Q$3"
+        },
+        {
+          "value_formula": "'Relational Movement No Movement'!$D$2:$D$3",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Relational Movement No Movement'!$R$2:$R$3",
+          "plus_formula": "'Relational Movement No Movement'!$S$2:$S$3"
+        }
+      ]
+    ],
+    "Cross Task Object Chart v2": [
+      [
+        {
+          "value_formula": "'Cross Task Object Chart v2'!$B$2:$B$3",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Cross Task Object Chart v2'!$N$2:$N$3",
+          "plus_formula": "'Cross Task Object Chart v2'!$O$2:$O$3"
+        },
+        {
+          "value_formula": "'Cross Task Object Chart v2'!$C$2:$C$3",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Cross Task Object Chart v2'!$P$2:$P$3",
+          "plus_formula": "'Cross Task Object Chart v2'!$Q$2:$Q$3"
+        },
+        {
+          "value_formula": "'Cross Task Object Chart v2'!$D$2:$D$3",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Cross Task Object Chart v2'!$R$2:$R$3",
+          "plus_formula": "'Cross Task Object Chart v2'!$S$2:$S$3"
+        }
+      ]
+    ],
+    "Familiar Spatial Task Chart": [
+      [
+        {
+          "value_formula": "'Familiar Spatial Task Chart'!$B$2:$B$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Familiar Spatial Task Chart'!$V$2:$V$7",
+          "plus_formula": "'Familiar Spatial Task Chart'!$W$2:$W$7"
+        },
+        {
+          "value_formula": "'Familiar Spatial Task Chart'!$C$2:$C$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Familiar Spatial Task Chart'!$X$2:$X$7",
+          "plus_formula": "'Familiar Spatial Task Chart'!$Y$2:$Y$7"
+        },
+        {
+          "value_formula": "'Familiar Spatial Task Chart'!$D$2:$D$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Familiar Spatial Task Chart'!$Z$2:$Z$7",
+          "plus_formula": "'Familiar Spatial Task Chart'!$AA$2:$AA$7"
+        },
+        {
+          "value_formula": "'Familiar Spatial Task Chart'!$E$2:$E$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Familiar Spatial Task Chart'!$AB$2:$AB$7",
+          "plus_formula": "'Familiar Spatial Task Chart'!$AC$2:$AC$7"
+        },
+        {
+          "value_formula": "'Familiar Spatial Task Chart'!$F$2:$F$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Familiar Spatial Task Chart'!$AD$2:$AD$7",
+          "plus_formula": "'Familiar Spatial Task Chart'!$AE$2:$AE$7"
+        }
+      ]
+    ],
+    "Matched Manipulation Task Chart": [
+      [
+        {
+          "value_formula": "'Matched Manipulation Task Chart'!$B$2:$B$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Matched Manipulation Task Chart'!$N$2:$N$7",
+          "plus_formula": "'Matched Manipulation Task Chart'!$O$2:$O$7"
+        },
+        {
+          "value_formula": "'Matched Manipulation Task Chart'!$C$2:$C$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Matched Manipulation Task Chart'!$P$2:$P$7",
+          "plus_formula": "'Matched Manipulation Task Chart'!$Q$2:$Q$7"
+        },
+        {
+          "value_formula": "'Matched Manipulation Task Chart'!$D$2:$D$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Matched Manipulation Task Chart'!$R$2:$R$7",
+          "plus_formula": "'Matched Manipulation Task Chart'!$S$2:$S$7"
+        }
+      ]
+    ],
+    "Novel Spatial Task Chart": [
+      [
+        {
+          "value_formula": "'Novel Spatial Task Chart'!$B$2:$B$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Novel Spatial Task Chart'!$N$2:$N$7",
+          "plus_formula": "'Novel Spatial Task Chart'!$O$2:$O$7"
+        },
+        {
+          "value_formula": "'Novel Spatial Task Chart'!$C$2:$C$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Novel Spatial Task Chart'!$P$2:$P$7",
+          "plus_formula": "'Novel Spatial Task Chart'!$Q$2:$Q$7"
+        },
+        {
+          "value_formula": "'Novel Spatial Task Chart'!$D$2:$D$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Novel Spatial Task Chart'!$R$2:$R$7",
+          "plus_formula": "'Novel Spatial Task Chart'!$S$2:$S$7"
+        }
+      ]
+    ],
+    "Emergent Skills Data": [
+      [
+        {
+          "value_formula": "'Emergent Skills Data'!$B$2:$B$4",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Emergent Skills Data'!$Q$2:$Q$4",
+          "plus_formula": "'Emergent Skills Data'!$R$2:$R$4"
+        },
+        {
+          "value_formula": "'Emergent Skills Data'!$C$2:$C$4",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Emergent Skills Data'!$S$2:$S$4",
+          "plus_formula": "'Emergent Skills Data'!$T$2:$T$4"
+        },
+        {
+          "value_formula": "'Emergent Skills Data'!$D$2:$D$4",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Emergent Skills Data'!$U$2:$U$4",
+          "plus_formula": "'Emergent Skills Data'!$V$2:$V$4"
+        }
+      ]
+    ],
+    "Sheet2": [
+      [
+        {
+          "value_formula": "'Sheet2'!$R$5:$R$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Sheet2'!$U$5:$U$7",
+          "plus_formula": "'Sheet2'!$V$5:$V$7"
+        },
+        {
+          "value_formula": "'Sheet2'!$S$5:$S$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Sheet2'!$W$5:$W$7",
+          "plus_formula": "'Sheet2'!$X$5:$X$7"
+        },
+        {
+          "value_formula": "'Sheet2'!$T$5:$T$7",
+          "error_type": "cust",
+          "error_direction": "y",
+          "minus_formula": "'Sheet2'!$Y$5:$Y$7",
+          "plus_formula": "'Sheet2'!$Z$5:$Z$7"
+        }
+      ]
+    ],
+    "Failure Analysis - Novel": [
+      [
+        {
+          "value_formula": "'Failure Analysis - Novel'!$C$6:$C$13",
+          "error_type": "cust",
+          "error_direction": "x",
+          "minus_formula": "'Failure Analysis - Novel'!$F$6:$F$13",
+          "plus_formula": "'Failure Analysis - Novel'!$G$6:$G$13"
+        }
+      ]
+    ],
+    "Failure Analysis - All": [
+      [
+        {
+          "value_formula": "'Failure Analysis - All'!$C$6:$C$14",
+          "error_type": "cust",
+          "error_direction": "x",
+          "minus_formula": "'Failure Analysis - All'!$F$6:$F$14",
+          "plus_formula": "'Failure Analysis - All'!$G$6:$G$14"
+        }
+      ]
+    ]
+  },
+  "failure_chart_blue": {
+    "Failure Analysis - Novel": "<openpyxl.drawing.colors.ColorChoice object>\nParameters:\nscrgbClr=None, srgbClr='4F81BD', hslClr=None, sysClr=None, schemeClr=None, prstClr=None",
+    "Failure Analysis - All": "<openpyxl.drawing.colors.ColorChoice object>\nParameters:\nscrgbClr=None, srgbClr='4F81BD', hslClr=None, sysClr=None, schemeClr=None, prstClr=None"
+  }
+}

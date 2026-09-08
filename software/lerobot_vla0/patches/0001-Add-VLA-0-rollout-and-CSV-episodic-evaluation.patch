@@ -1,0 +1,1737 @@
+From 46ad7a32ca92e2c7d73923cd1c8c9759a0042644 Mon Sep 17 00:00:00 2001
+From: Justin Tien-Smith <justintiensmith@Justins-MacBook-Pro-2.local>
+Date: Sat, 8 Aug 2026 14:34:24 +0100
+Subject: [PATCH 1/2] Add VLA-0 rollout and CSV episodic evaluation
+
+---
+ docs/source/_toctree.yml                      |   2 +
+ docs/source/inference.mdx                     |  25 +++
+ docs/source/vla0.mdx                          |  67 ++++++
+ src/lerobot/policies/__init__.py              |   2 +
+ src/lerobot/policies/factory.py               |  17 ++
+ src/lerobot/policies/vla0/__init__.py         |  19 ++
+ .../policies/vla0/configuration_vla0.py       | 147 ++++++++++++
+ src/lerobot/policies/vla0/modeling_vla0.py    | 190 ++++++++++++++++
+ src/lerobot/policies/vla0/processor_vla0.py   |  57 +++++
+ src/lerobot/rollout/configs.py                |  55 ++++-
+ src/lerobot/rollout/inference/base.py         |   5 +
+ src/lerobot/rollout/inference/rtc.py          | 141 +++++++-----
+ src/lerobot/rollout/inference/sync.py         |   7 +
+ src/lerobot/rollout/prompt_schedule.py        | 153 +++++++++++++
+ src/lerobot/rollout/strategies/episodic.py    | 126 ++++++++++-
+ src/lerobot/scripts/lerobot_rollout.py        |  14 ++
+ tests/policies/vla0/test_vla0.py              | 209 ++++++++++++++++++
+ tests/test_rollout.py                         | 152 ++++++++++++-
+ 18 files changed, 1317 insertions(+), 71 deletions(-)
+ create mode 100644 docs/source/vla0.mdx
+ create mode 100644 src/lerobot/policies/vla0/__init__.py
+ create mode 100644 src/lerobot/policies/vla0/configuration_vla0.py
+ create mode 100644 src/lerobot/policies/vla0/modeling_vla0.py
+ create mode 100644 src/lerobot/policies/vla0/processor_vla0.py
+ create mode 100644 src/lerobot/rollout/prompt_schedule.py
+ create mode 100644 tests/policies/vla0/test_vla0.py
+
+diff --git a/docs/source/_toctree.yml b/docs/source/_toctree.yml
+index 7f7a34e6..b7ea573d 100644
+--- a/docs/source/_toctree.yml
++++ b/docs/source/_toctree.yml
+@@ -73,6 +73,8 @@
+     title: LingBot-VA
+   - local: fastwam
+     title: FastWAM
++  - local: vla0
++    title: VLA-0
+   - local: evo1
+     title: EVO1
+   - local: groot
+diff --git a/docs/source/inference.mdx b/docs/source/inference.mdx
+index 31405b5d..0782ed18 100644
+--- a/docs/source/inference.mdx
++++ b/docs/source/inference.mdx
+@@ -195,6 +195,31 @@ Teleop is optional — if omitted the robot holds its position during the reset
+ | `--strategy.reset_to_initial_position`          | Whether to reset the robot to its initial position between episodes        |
+ | `--strategy.smooth_leader_to_follower_handover` | Whether to turn on or off the leader -> follower smooth handover behavior. |
+ 
++#### Per-episode prompt schedule
++
++Use a CSV file to change the policy's language prompt between episodes without
++reloading its weights. The only required column is `Prompt`; the default
++optional metadata columns are `Episode Number`, `Task Being Assessed`,
++`Condition`, and `Scene Description`.
++
++```bash
++lerobot-rollout \
++    --strategy.type=episodic \
++    --strategy.prompt_file=/path/to/evaluation_checklist.csv \
++    --strategy.start_row=0 \
++    --strategy.num_rows=110 \
++    --policy.path=${HF_USER}/my_policy \
++    --robot.type=so100_follower \
++    --robot.port=/dev/ttyACM0 \
++    --dataset.repo_id=${HF_USER}/rollout_scheduled_eval \
++    --dataset.num_episodes=110
++```
++
++`start_row` counts CSV data rows, excluding the header. When a prompt schedule
++is active, `dataset.num_episodes` is the target total dataset size. A discarded
++episode reuses the same prompt; a resumed dataset continues at the next
++unsaved prompt. Keep the same schedule slice and target size when resuming.
++
+ ---
+ 
+ ## Inference Backends
+diff --git a/docs/source/vla0.mdx b/docs/source/vla0.mdx
+new file mode 100644
+index 00000000..454c59be
+--- /dev/null
++++ b/docs/source/vla0.mdx
+@@ -0,0 +1,67 @@
++# VLA-0
++
++LeRobot can deploy [VLA-0](https://github.com/NVlabs/vla0) checkpoints through the HTTP inference service in [mattpidden/vla0](https://github.com/mattpidden/vla0). The model and its CUDA dependencies stay in the VLA-0 environment, while `lerobot-rollout` owns camera capture, robot control, recording, task prompts, and rollout strategies.
++
++This adapter is inference-only and currently matches the fork's SO-100/SO-101 service contract: two RGB cameras, six joint positions in degrees, and six absolute joint-position actions.
++
++## Start the VLA-0 server
++
++Install and test the VLA-0 fork in its own environment, then start its service with your checkpoint:
++
++```bash
++cd /path/to/vla0
++ROBOVERSE_DEPLOY_CHECKPOINT=/path/to/model_last.pth \
++    python rv_train/deploy/service.py
++```
++
++The service listens on port `10000` by default. Verify it before connecting a robot:
++
++```bash
++curl http://127.0.0.1:10000/health
++```
++
++## Run with `lerobot-rollout`
++
++Camera names and order must match training. The fork's real-world client uses `wrist` first and `middle` second:
++
++```bash
++uv run lerobot-rollout \
++    --strategy.type=base \
++    --inference.type=sync \
++    --policy.type=vla0 \
++    --policy.server_url=http://127.0.0.1:10000 \
++    --policy.n_action_steps=4 \
++    --robot.type=so101_follower \
++    --robot.port=/dev/ttyACM1 \
++    --robot.id=blue_follower \
++    --robot.use_degrees=true \
++    --robot.max_relative_target=5 \
++    --robot.cameras="{wrist: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30}, middle: {type: opencv, index_or_path: 12, width: 640, height: 480, fps: 30}}" \
++    --task="Pick up the juggling ball and place it in the bowl." \
++    --fps=10 \
++    --duration=60
++```
++
++No `--policy.path` is needed because the checkpoint is loaded by the server. `policy.n_action_steps` controls how many returned actions are executed before requesting a new chunk.
++
++The synchronous backend pauses the control loop while VLA-0 generates each chunk. To generate in a background thread and append complete chunks to the rollout queue, use:
++
++```bash
++--inference.type=rtc \
++--inference.rtc.enabled=false \
++--inference.queue_threshold=4
++```
++
++`rtc.enabled=false` is intentional: the VLA-0 service does not implement RTC prefix inpainting, so the asynchronous engine is used only as a producer/consumer queue.
++
++## Configuration
++
++| Flag | Default | Meaning |
++| --- | --- | --- |
++| `policy.server_url` | `http://127.0.0.1:10000` | VLA-0 service base URL |
++| `policy.camera_keys` | wrist, middle | Ordered LeRobot image feature keys |
++| `policy.n_action_steps` | `4` | Actions consumed from each returned chunk |
++| `policy.request_timeout_s` | `300` | Inference request timeout |
++| `policy.check_server_on_load` | `true` | Check `/health` before connecting the robot |
++
++Keep `robot.use_degrees=true`: the fork's real-world data and client represent SO-101 state and actions in degrees. Keep a conservative `robot.max_relative_target` during initial tests, begin with a short `duration`, and be ready to stop the robot.
+diff --git a/src/lerobot/policies/__init__.py b/src/lerobot/policies/__init__.py
+index 7f0bed2e..3783f10a 100644
+--- a/src/lerobot/policies/__init__.py
++++ b/src/lerobot/policies/__init__.py
+@@ -32,6 +32,7 @@ from .pretrained import PreTrainedPolicy as PreTrainedPolicy
+ from .smolvla.configuration_smolvla import SmolVLAConfig as SmolVLAConfig
+ from .tdmpc.configuration_tdmpc import TDMPCConfig as TDMPCConfig
+ from .utils import make_robot_action, prepare_observation_for_inference
++from .vla0.configuration_vla0 import VLA0Config as VLA0Config
+ from .vqbet.configuration_vqbet import VQBeTConfig as VQBeTConfig
+ from .wall_x.configuration_wall_x import WallXConfig as WallXConfig
+ from .xvla.configuration_xvla import XVLAConfig as XVLAConfig
+@@ -57,6 +58,7 @@ __all__ = [
+     "PI05Config",
+     "SmolVLAConfig",
+     "TDMPCConfig",
++    "VLA0Config",
+     "VQBeTConfig",
+     "WallXConfig",
+     "XVLAConfig",
+diff --git a/src/lerobot/policies/factory.py b/src/lerobot/policies/factory.py
+index 73fd9455..88e80616 100644
+--- a/src/lerobot/policies/factory.py
++++ b/src/lerobot/policies/factory.py
+@@ -60,6 +60,7 @@ from .pretrained import PreTrainedPolicy
+ from .smolvla.configuration_smolvla import SmolVLAConfig
+ from .tdmpc.configuration_tdmpc import TDMPCConfig
+ from .utils import validate_visual_features_consistency
++from .vla0.configuration_vla0 import VLA0Config
+ from .vla_jepa.configuration_vla_jepa import VLAJEPAConfig
+ from .vqbet.configuration_vqbet import VQBeTConfig
+ from .wall_x.configuration_wall_x import WallXConfig
+@@ -177,6 +178,10 @@ def get_policy_class(name: str) -> type[PreTrainedPolicy]:
+         from .evo1.modeling_evo1 import Evo1Policy
+ 
+         return Evo1Policy
++    elif name == "vla0":
++        from .vla0.modeling_vla0 import VLA0Policy
++
++        return VLA0Policy
+     else:
+         try:
+             return _get_policy_cls_from_policy_name(name=name)
+@@ -239,6 +244,8 @@ def make_policy_config(policy_type: str, **kwargs) -> PreTrainedConfig:
+         return FastWAMConfig(**kwargs)
+     elif policy_type == "evo1":
+         return Evo1Config(**kwargs)
++    elif policy_type == "vla0":
++        return VLA0Config(**kwargs)
+     else:
+         try:
+             config_cls = PreTrainedConfig.get_choice_class(policy_type)
+@@ -301,6 +308,16 @@ def make_pre_post_processors(
+         NotImplementedError: If a processor factory is not implemented for the given
+             policy configuration type.
+     """
++    # VLA-0 weights and preprocessing live in its remote service. A saved
++    # adapter config therefore does not need local processor JSON files.
++    if isinstance(policy_cfg, VLA0Config):
++        from .vla0.processor_vla0 import make_vla0_pre_post_processors
++
++        return make_vla0_pre_post_processors(
++            config=policy_cfg,
++            dataset_stats=kwargs.get("dataset_stats"),
++        )
++
+     if pretrained_path:
+         if isinstance(policy_cfg, GrootConfig):
+             from .groot.processor_groot import make_groot_pre_post_processors_from_pretrained
+diff --git a/src/lerobot/policies/vla0/__init__.py b/src/lerobot/policies/vla0/__init__.py
+new file mode 100644
+index 00000000..cfdd55d2
+--- /dev/null
++++ b/src/lerobot/policies/vla0/__init__.py
+@@ -0,0 +1,19 @@
++# Copyright 2026 The HuggingFace Inc. team. All rights reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++"""VLA-0 remote inference policy."""
++
++from .configuration_vla0 import VLA0Config
++
++__all__ = ["VLA0Config"]
+diff --git a/src/lerobot/policies/vla0/configuration_vla0.py b/src/lerobot/policies/vla0/configuration_vla0.py
+new file mode 100644
+index 00000000..d5e41675
+--- /dev/null
++++ b/src/lerobot/policies/vla0/configuration_vla0.py
+@@ -0,0 +1,147 @@
++# Copyright 2026 The HuggingFace Inc. team. All rights reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++"""Configuration for VLA-0 inference through its deployment service."""
++
++from dataclasses import dataclass, field
++
++from lerobot.configs.policies import PreTrainedConfig
++from lerobot.configs.types import FeatureType, NormalizationMode, PolicyFeature
++from lerobot.optim import LRSchedulerConfig, OptimizerConfig
++from lerobot.utils.constants import ACTION, OBS_STATE
++
++DEFAULT_VLA0_ACTION_NAMES = [
++    "shoulder_pan.pos",
++    "shoulder_lift.pos",
++    "elbow_flex.pos",
++    "wrist_flex.pos",
++    "wrist_roll.pos",
++    "gripper.pos",
++]
++
++
++@PreTrainedConfig.register_subclass("vla0")
++@dataclass
++class VLA0Config(PreTrainedConfig):
++    """Inference-only adapter for the VLA-0 HTTP deployment service.
++
++    The VLA-0 model remains in its own CUDA environment. LeRobot serializes
++    the current observations, requests an action chunk, and owns the robot
++    control loop and rollout strategy.
++    """
++
++    server_url: str = "http://127.0.0.1:10000"
++    predict_endpoint: str = "/predict_base64"
++    health_endpoint: str = "/health"
++    request_timeout_s: float = 300.0
++    healthcheck_timeout_s: float = 5.0
++    check_server_on_load: bool = True
++
++    camera_keys: list[str] = field(
++        default_factory=lambda: ["observation.images.wrist", "observation.images.middle"]
++    )
++    image_height: int = 480
++    image_width: int = 640
++    action_dim: int = 6
++    n_action_steps: int = 4
++    action_feature_names: list[str] = field(default_factory=lambda: list(DEFAULT_VLA0_ACTION_NAMES))
++
++    # The policy performs only lightweight HTTP serialization locally. Keeping
++    # observations on CPU avoids unnecessary transfers to the service host's GPU.
++    device: str | None = "cpu"
++    use_amp: bool = False
++    normalization_mapping: dict[str, NormalizationMode] = field(
++        default_factory=lambda: {
++            "VISUAL": NormalizationMode.IDENTITY,
++            "STATE": NormalizationMode.IDENTITY,
++            "ACTION": NormalizationMode.IDENTITY,
++        }
++    )
++
++    def __post_init__(self) -> None:
++        super().__post_init__()
++        self.server_url = self.server_url.rstrip("/")
++        self.predict_endpoint = self._normalize_endpoint(self.predict_endpoint, "predict_endpoint")
++        self.health_endpoint = self._normalize_endpoint(self.health_endpoint, "health_endpoint")
++
++        if not self.server_url.startswith(("http://", "https://")):
++            raise ValueError("VLA-0 server_url must start with http:// or https://")
++        if self.request_timeout_s <= 0 or self.healthcheck_timeout_s <= 0:
++            raise ValueError("VLA-0 request timeouts must be positive")
++        if not self.camera_keys or len(set(self.camera_keys)) != len(self.camera_keys):
++            raise ValueError("VLA-0 camera_keys must be a non-empty list of unique feature keys")
++        if self.image_height <= 0 or self.image_width <= 0:
++            raise ValueError("VLA-0 image dimensions must be positive")
++        if self.action_dim <= 0 or self.n_action_steps <= 0:
++            raise ValueError("VLA-0 action_dim and n_action_steps must be positive")
++        if len(self.action_feature_names) != self.action_dim:
++            raise ValueError(
++                "VLA-0 action_feature_names length must match action_dim: "
++                f"{len(self.action_feature_names)} != {self.action_dim}"
++            )
++
++        if not self.input_features:
++            self.input_features = {
++                OBS_STATE: PolicyFeature(type=FeatureType.STATE, shape=(self.action_dim,)),
++                **{
++                    key: PolicyFeature(
++                        type=FeatureType.VISUAL,
++                        shape=(3, self.image_height, self.image_width),
++                    )
++                    for key in self.camera_keys
++                },
++            }
++        if not self.output_features:
++            self.output_features = {ACTION: PolicyFeature(type=FeatureType.ACTION, shape=(self.action_dim,))}
++        self.validate_features()
++
++    @staticmethod
++    def _normalize_endpoint(value: str, field_name: str) -> str:
++        value = value.strip()
++        if not value:
++            raise ValueError(f"VLA-0 {field_name} must not be empty")
++        return value if value.startswith("/") else f"/{value}"
++
++    @property
++    def observation_delta_indices(self) -> None:
++        return None
++
++    @property
++    def action_delta_indices(self) -> list[int]:
++        return list(range(self.n_action_steps))
++
++    @property
++    def reward_delta_indices(self) -> None:
++        return None
++
++    def get_optimizer_preset(self) -> OptimizerConfig:
++        raise NotImplementedError("VLA-0's LeRobot adapter is inference-only")
++
++    def get_scheduler_preset(self) -> LRSchedulerConfig | None:
++        return None
++
++    def validate_features(self) -> None:
++        if self.input_features is None or self.output_features is None:
++            raise ValueError("VLA-0 input_features and output_features must be configured")
++        missing_cameras = [key for key in self.camera_keys if key not in self.input_features]
++        if missing_cameras:
++            raise ValueError(f"VLA-0 input_features are missing camera keys: {missing_cameras}")
++        if OBS_STATE not in self.input_features:
++            raise ValueError(f"VLA-0 input_features must include {OBS_STATE!r}")
++        if ACTION not in self.output_features:
++            raise ValueError(f"VLA-0 output_features must include {ACTION!r}")
++        if self.input_features[OBS_STATE].shape != (self.action_dim,):
++            raise ValueError("VLA-0 state feature shape must match action_dim")
++        if self.output_features[ACTION].shape != (self.action_dim,):
++            raise ValueError("VLA-0 action feature shape must match action_dim")
+diff --git a/src/lerobot/policies/vla0/modeling_vla0.py b/src/lerobot/policies/vla0/modeling_vla0.py
+new file mode 100644
+index 00000000..751b8455
+--- /dev/null
++++ b/src/lerobot/policies/vla0/modeling_vla0.py
+@@ -0,0 +1,190 @@
++# Copyright 2026 The HuggingFace Inc. team. All rights reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++"""LeRobot policy adapter for the VLA-0 deployment service."""
++
++from __future__ import annotations
++
++import base64
++import io
++from collections import deque
++from pathlib import Path
++from typing import Any
++
++import numpy as np
++import requests
++import torch
++from torch import Tensor
++
++from lerobot.configs import PreTrainedConfig
++from lerobot.policies.pretrained import PreTrainedPolicy
++from lerobot.utils.constants import OBS_STATE
++
++from .configuration_vla0 import VLA0Config
++
++
++class VLA0Policy(PreTrainedPolicy):
++    """Send LeRobot observations to a VLA-0 server and cache its action chunks."""
++
++    config_class = VLA0Config
++    name = "vla0"
++
++    def __init__(
++        self,
++        config: VLA0Config,
++        *,
++        session: requests.Session | None = None,
++        **_: Any,
++    ) -> None:
++        super().__init__(config)
++        config.validate_features()
++        self.config = config
++        self._session = session or requests.Session()
++        self._action_queue: deque[Tensor] = deque()
++        if config.check_server_on_load:
++            self._check_server()
++
++    @classmethod
++    def from_pretrained(
++        cls,
++        pretrained_name_or_path: str | Path | None = None,
++        *,
++        config: PreTrainedConfig | None = None,
++        revision: str | None = None,
++        session: requests.Session | None = None,
++        **kwargs: Any,
++    ) -> VLA0Policy:
++        """Instantiate the adapter; VLA-0 weights live in the remote service."""
++        del kwargs
++        if config is None:
++            if pretrained_name_or_path is None:
++                config = VLA0Config()
++            else:
++                config = VLA0Config.from_pretrained(pretrained_name_or_path, revision=revision)
++        if not isinstance(config, VLA0Config):
++            raise TypeError(f"VLA0Policy requires VLA0Config, got {type(config).__name__}")
++        policy = cls(config, session=session)
++        policy.eval()
++        return policy
++
++    def _check_server(self) -> None:
++        url = f"{self.config.server_url}{self.config.health_endpoint}"
++        try:
++            response = self._session.get(url, timeout=self.config.healthcheck_timeout_s)
++            response.raise_for_status()
++        except requests.RequestException as exc:
++            raise RuntimeError(
++                f"VLA-0 inference server is unavailable at {url}. Start rv_train/deploy/service.py first."
++            ) from exc
++
++    def get_optim_params(self) -> list[Tensor]:
++        return []
++
++    def reset(self) -> None:
++        self._action_queue.clear()
++
++    def forward(self, batch: dict[str, Tensor]) -> tuple[Tensor, dict | None]:
++        del batch
++        raise NotImplementedError("VLA-0's LeRobot adapter is inference-only")
++
++    @torch.no_grad()
++    def predict_action_chunk(self, batch: dict[str, Tensor], **_: Any) -> Tensor:
++        payload = {
++            "base64_rgb": [
++                self._encode_image(self._require_tensor(batch, camera_key))
++                for camera_key in self.config.camera_keys
++            ],
++            "state": self._state_as_list(self._require_tensor(batch, OBS_STATE)),
++            "instr": self._task_from_batch(batch),
++        }
++        url = f"{self.config.server_url}{self.config.predict_endpoint}"
++        try:
++            response = self._session.post(url, json=payload, timeout=self.config.request_timeout_s)
++            response.raise_for_status()
++            actions = np.asarray(response.json(), dtype=np.float32)
++        except (requests.RequestException, TypeError, ValueError) as exc:
++            raise RuntimeError(f"VLA-0 inference request failed at {url}") from exc
++
++        if actions.ndim != 2 or actions.shape[0] == 0 or actions.shape[1] != self.config.action_dim:
++            raise ValueError(
++                "VLA-0 server returned an invalid action chunk: expected "
++                f"[horizon, {self.config.action_dim}], got {tuple(actions.shape)}"
++            )
++        if not np.isfinite(actions).all():
++            raise ValueError("VLA-0 server returned non-finite actions")
++        return torch.from_numpy(actions).unsqueeze(0)
++
++    @torch.no_grad()
++    def select_action(self, batch: dict[str, Tensor], **kwargs: Any) -> Tensor:
++        if not self._action_queue:
++            actions = self.predict_action_chunk(batch, **kwargs)
++            steps = min(self.config.n_action_steps, actions.shape[1])
++            self._action_queue.extend(actions[:, :steps].transpose(0, 1))
++        return self._action_queue.popleft()
++
++    @staticmethod
++    def _require_tensor(batch: dict[str, Any], key: str) -> Tensor:
++        value = batch.get(key)
++        if not isinstance(value, Tensor):
++            raise KeyError(f"VLA-0 inference requires tensor feature {key!r}")
++        return value
++
++    @staticmethod
++    def _encode_image(image: Tensor) -> str:
++        image = image.detach().cpu()
++        if image.ndim == 4:
++            if image.shape[0] != 1:
++                raise ValueError(f"VLA-0 rollout supports batch size 1, got image shape {tuple(image.shape)}")
++            image = image[0]
++        if image.ndim != 3 or image.shape[0] not in (1, 3, 4):
++            raise ValueError(f"VLA-0 expected a CHW image tensor, got shape {tuple(image.shape)}")
++
++        image_np = image.permute(1, 2, 0).numpy()
++        if np.issubdtype(image_np.dtype, np.floating):
++            minimum = float(image_np.min())
++            maximum = float(image_np.max())
++            if minimum < 0 or maximum > 255:
++                raise ValueError(
++                    f"VLA-0 image values must be in [0, 1] or [0, 255], got [{minimum}, {maximum}]"
++                )
++            if maximum <= 1.0:
++                image_np = image_np * 255.0
++        image_np = np.clip(np.rint(image_np), 0, 255).astype(np.uint8)
++
++        buffer = io.BytesIO()
++        np.save(buffer, image_np, allow_pickle=False)
++        return base64.b64encode(buffer.getvalue()).decode("ascii")
++
++    def _state_as_list(self, state: Tensor) -> list[float]:
++        state = state.detach().cpu()
++        if state.ndim == 2:
++            if state.shape[0] != 1:
++                raise ValueError(f"VLA-0 rollout supports batch size 1, got state shape {tuple(state.shape)}")
++            state = state[0]
++        if state.ndim != 1 or state.shape[0] != self.config.action_dim:
++            raise ValueError(
++                f"VLA-0 expected state shape [{self.config.action_dim}], got {tuple(state.shape)}"
++            )
++        return state.to(dtype=torch.float32).tolist()
++
++    @staticmethod
++    def _task_from_batch(batch: dict[str, Any]) -> str | None:
++        task = batch.get("task")
++        if isinstance(task, (list, tuple)):
++            task = task[0] if task else None
++        if task is None:
++            return None
++        if not isinstance(task, str):
++            raise TypeError(f"VLA-0 task must be a string, got {type(task).__name__}")
++        return task
+diff --git a/src/lerobot/policies/vla0/processor_vla0.py b/src/lerobot/policies/vla0/processor_vla0.py
+new file mode 100644
+index 00000000..aa7ca517
+--- /dev/null
++++ b/src/lerobot/policies/vla0/processor_vla0.py
+@@ -0,0 +1,57 @@
++# Copyright 2026 The HuggingFace Inc. team. All rights reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++"""Processor pipelines for the VLA-0 remote policy."""
++
++from typing import Any
++
++from lerobot.processor import (
++    AddBatchDimensionProcessorStep,
++    DeviceProcessorStep,
++    PolicyAction,
++    PolicyProcessorPipeline,
++    RenameObservationsProcessorStep,
++    policy_action_to_transition,
++    transition_to_policy_action,
++)
++from lerobot.utils.constants import POLICY_POSTPROCESSOR_DEFAULT_NAME, POLICY_PREPROCESSOR_DEFAULT_NAME
++
++from .configuration_vla0 import VLA0Config
++
++
++def make_vla0_pre_post_processors(
++    config: VLA0Config,
++    dataset_stats: dict | None = None,
++) -> tuple[
++    PolicyProcessorPipeline[dict[str, Any], dict[str, Any]],
++    PolicyProcessorPipeline[PolicyAction, PolicyAction],
++]:
++    """Build identity-like CPU pipelines for the remote inference boundary."""
++    del dataset_stats
++    return (
++        PolicyProcessorPipeline[dict[str, Any], dict[str, Any]](
++            steps=[
++                RenameObservationsProcessorStep(rename_map={}),
++                AddBatchDimensionProcessorStep(),
++                DeviceProcessorStep(device="cpu", float_dtype="float32"),
++            ],
++            name=POLICY_PREPROCESSOR_DEFAULT_NAME,
++        ),
++        PolicyProcessorPipeline[PolicyAction, PolicyAction](
++            steps=[DeviceProcessorStep(device="cpu", float_dtype="float32")],
++            name=POLICY_POSTPROCESSOR_DEFAULT_NAME,
++            to_transition=policy_action_to_transition,
++            to_output=transition_to_policy_action,
++        ),
++    )
+diff --git a/src/lerobot/rollout/configs.py b/src/lerobot/rollout/configs.py
+index 639e2ba2..44c76675 100644
+--- a/src/lerobot/rollout/configs.py
++++ b/src/lerobot/rollout/configs.py
+@@ -128,6 +128,8 @@ class EpisodicStrategyConfig(RolloutStrategyConfig):
+ 
+     Records ``dataset.num_episodes`` episodes of maximum ``dataset.episode_time_s`` each.
+     After each episode, runs ``dataset.reset_time_s`` seconds of reset time.
++    When ``prompt_file`` is set, ``dataset.num_episodes`` is the target total
++    dataset size so a resumed run continues at the matching prompt row.
+ 
+     Keyboard controls:
+         Right arrow  — end current episode or reset phase early
+@@ -149,6 +151,35 @@ class EpisodicStrategyConfig(RolloutStrategyConfig):
+     # Note that leader -> follower handover is only supported when the leader has `send_feedback` capability.
+     smooth_leader_to_follower_handover: bool = True
+ 
++    # Optional CSV schedule that supplies a different language prompt for each
++    # recorded episode while keeping the policy loaded.
++    prompt_file: str | None = None
++    prompt_column: str = "Prompt"
++    scene_column: str = "Scene Description"
++    episode_column: str = "Episode Number"
++    condition_column: str = "Condition"
++    task_column: str = "Task Being Assessed"
++    # Data-row offset and count within the CSV (the header is not counted).
++    start_row: int = 0
++    num_rows: int | None = None
++
++    def __post_init__(self):
++        if self.start_row < 0:
++            raise ValueError(f"Episodic prompt start_row must be >= 0, got {self.start_row}")
++        if self.num_rows is not None and self.num_rows < 1:
++            raise ValueError(f"Episodic prompt num_rows must be >= 1 when set, got {self.num_rows}")
++        if self.prompt_file is None and (self.start_row != 0 or self.num_rows is not None):
++            raise ValueError("Episodic start_row/num_rows require --strategy.prompt_file")
++        for label, value in (
++            ("prompt_column", self.prompt_column),
++            ("scene_column", self.scene_column),
++            ("episode_column", self.episode_column),
++            ("condition_column", self.condition_column),
++            ("task_column", self.task_column),
++        ):
++            if not value.strip():
++                raise ValueError(f"Episodic {label} must not be empty")
++
+ 
+ @RolloutStrategyConfig.register_subclass("dagger")
+ @dataclass
+@@ -210,13 +241,13 @@ class RolloutConfig:
+     # Policy (loaded from --policy.path via __post_init__)
+     policy: PreTrainedConfig | None = None
+ 
+-    # Strategy (polymorphic: --strategy.type=base|sentry|highlight|dagger)
++    # Strategy (polymorphic: --strategy.type=base|sentry|highlight|episodic|dagger)
+     strategy: RolloutStrategyConfig = field(default_factory=BaseStrategyConfig)
+ 
+     # Inference backend (polymorphic: --inference.type=sync|rtc)
+     inference: InferenceEngineConfig = field(default_factory=SyncInferenceConfig)
+ 
+-    # Dataset (required for sentry, highlight, dagger; None for base)
++    # Dataset (required for sentry, highlight, episodic, dagger; None for base)
+     dataset: DatasetRecordConfig | None = None
+ 
+     # Runtime
+@@ -272,6 +303,26 @@ class RolloutConfig:
+         if needs_dataset and (self.dataset is None or not self.dataset.repo_id):
+             raise ValueError(f"{self.strategy.type} strategy requires --dataset.repo_id to be set")
+ 
++        if isinstance(self.strategy, EpisodicStrategyConfig) and self.strategy.prompt_file is not None:
++            # Validate the CSV before loading multi-gigabyte policy weights.
++            from .prompt_schedule import load_prompt_schedule
++
++            prompt_schedule = load_prompt_schedule(
++                self.strategy.prompt_file,
++                prompt_column=self.strategy.prompt_column,
++                scene_column=self.strategy.scene_column,
++                episode_column=self.strategy.episode_column,
++                condition_column=self.strategy.condition_column,
++                task_column=self.strategy.task_column,
++                start_row=self.strategy.start_row,
++                num_rows=self.strategy.num_rows,
++            )
++            if self.dataset is not None and self.dataset.num_episodes > len(prompt_schedule.entries):
++                raise ValueError(
++                    f"--dataset.num_episodes={self.dataset.num_episodes} exceeds the "
++                    f"{len(prompt_schedule.entries)} selected prompt-schedule rows"
++                )
++
+         if isinstance(self.strategy, BaseStrategyConfig) and self.dataset is not None:
+             raise ValueError(
+                 "Base strategy does not record data. Use sentry, highlight, or dagger for recording."
+diff --git a/src/lerobot/rollout/inference/base.py b/src/lerobot/rollout/inference/base.py
+index f269aa5f..473ab105 100644
+--- a/src/lerobot/rollout/inference/base.py
++++ b/src/lerobot/rollout/inference/base.py
+@@ -39,6 +39,7 @@ class InferenceEngine(abc.ABC):
+     ``start`` — prepare the backend (e.g. launch a background thread).
+     ``stop`` — shut the backend down cleanly.
+     ``reset`` — clear episode-scoped state (policy hidden state, queues…).
++    ``set_task`` — replace the language instruction for the next episode.
+ 
+     Action production
+     -----------------
+@@ -65,6 +66,10 @@ class InferenceEngine(abc.ABC):
+     def reset(self) -> None:
+         """Clear episode-scoped state."""
+ 
++    @abc.abstractmethod
++    def set_task(self, task: str) -> None:
++        """Set the language instruction used for subsequent inference."""
++
+     @abc.abstractmethod
+     def get_action(self, obs_frame: dict | None) -> torch.Tensor | None:
+         """Return the next action tensor, or ``None`` if unavailable."""
+diff --git a/src/lerobot/rollout/inference/rtc.py b/src/lerobot/rollout/inference/rtc.py
+index 0eef62ce..77d7bd96 100644
+--- a/src/lerobot/rollout/inference/rtc.py
++++ b/src/lerobot/rollout/inference/rtc.py
+@@ -122,6 +122,9 @@ class RTCInferenceEngine(InferenceEngine):
+         self._action_queue: ActionQueue | None = None
+         self._obs_holder: dict[str, Any] = {}
+         self._obs_lock = Lock()
++        # Serializes policy/processor inference against episode-boundary
++        # task changes and resets.
++        self._inference_lock = Lock()
+         self._policy_active = Event()
+         self._compile_warmup_done = Event()
+         self._shutdown_event = Event()
+@@ -217,13 +220,24 @@ class RTCInferenceEngine(InferenceEngine):
+         self._policy_active.set()
+ 
+     def reset(self) -> None:
+-        """Reset the policy, processors, and action queue."""
+-        logger.info("Resetting RTC inference state (policy + processors + queue)")
+-        self._policy.reset()
+-        self._preprocessor.reset()
+-        self._postprocessor.reset()
+-        if self._action_queue is not None:
+-            self._action_queue.clear()
++        """Reset policy state, processors, observations, and the action queue."""
++        logger.info("Resetting RTC inference state (policy + processors + observation + queue)")
++        with self._inference_lock:
++            self._policy.reset()
++            self._preprocessor.reset()
++            self._postprocessor.reset()
++            with self._obs_lock:
++                self._obs_holder["obs"] = None
++            if self._action_queue is not None:
++                self._action_queue.clear()
++
++    def set_task(self, task: str) -> None:
++        """Replace the language instruction without reloading the policy."""
++        if not task.strip():
++            raise ValueError("Inference task must not be empty")
++        with self._inference_lock:
++            self._task = task
++        logger.info("RTC inference task updated: %s", task)
+ 
+     # ------------------------------------------------------------------
+     # Action production (called from main thread)
+@@ -261,67 +275,76 @@ class RTCInferenceEngine(InferenceEngine):
+                     continue
+ 
+                 queue = self._action_queue
+-                with self._obs_lock:
+-                    obs = self._obs_holder.get("obs")
+-                if queue is None or obs is None:
++                if queue is None:
+                     time.sleep(_RTC_IDLE_SLEEP_S)
+                     continue
+ 
+                 if queue.qsize() <= self._rtc_queue_threshold:
+                     try:
+-                        current_time = time.perf_counter()
+-                        idx_before = queue.get_action_index()
+-                        prev_actions = queue.get_left_over()
+-
+-                        latency = latency_tracker.max()
+-                        delay = math.ceil(latency / time_per_chunk) if latency else 0
+-
+-                        obs_batch = build_dataset_frame(self._hw_features, obs, prefix="observation")
+-                        obs_batch = prepare_observation_for_inference(
+-                            obs_batch, policy_device, self._task, self._robot.robot_type
+-                        )
+-                        obs_batch["task"] = [self._task]
+-
+-                        preprocessed = self._preprocessor(obs_batch)
+-
+-                        if prev_actions is not None and self._relative_step is not None:
+-                            # Rebase against the raw cached state so the leftover tail stays in
+-                            # the training-time coordinate frame.
+-                            raw_state = self._relative_step.get_cached_state()
+-                            if raw_state is not None:
+-                                prev_abs = queue.get_processed_left_over()
+-                                if prev_abs is not None and prev_abs.numel() > 0:
+-                                    prev_actions = reanchor_relative_rtc_prefix(
+-                                        prev_actions_absolute=prev_abs,
+-                                        current_state=raw_state,
+-                                        relative_step=self._relative_step,
+-                                        normalizer_step=self._normalizer_step,
+-                                        policy_device=policy_device,
+-                                    )
+-
+-                        if prev_actions is not None:
+-                            prev_actions = _normalize_prev_actions_length(
+-                                prev_actions, target_steps=self._rtc_config.execution_horizon
++                        with self._inference_lock:
++                            # pause() may have run after the outer event check
++                            # while this thread was waiting for the inference
++                            # lock at an episode boundary.
++                            if not self._policy_active.is_set():
++                                continue
++                            with self._obs_lock:
++                                obs = self._obs_holder.get("obs")
++                            if obs is None:
++                                continue
++
++                            current_time = time.perf_counter()
++                            idx_before = queue.get_action_index()
++                            prev_actions = queue.get_left_over()
++
++                            latency = latency_tracker.max()
++                            delay = math.ceil(latency / time_per_chunk) if latency else 0
++
++                            obs_batch = build_dataset_frame(self._hw_features, obs, prefix="observation")
++                            obs_batch = prepare_observation_for_inference(
++                                obs_batch, policy_device, self._task, self._robot.robot_type
++                            )
++                            obs_batch["task"] = [self._task]
++
++                            preprocessed = self._preprocessor(obs_batch)
++
++                            if prev_actions is not None and self._relative_step is not None:
++                                # Rebase against the raw cached state so the leftover tail stays in
++                                # the training-time coordinate frame.
++                                raw_state = self._relative_step.get_cached_state()
++                                if raw_state is not None:
++                                    prev_abs = queue.get_processed_left_over()
++                                    if prev_abs is not None and prev_abs.numel() > 0:
++                                        prev_actions = reanchor_relative_rtc_prefix(
++                                            prev_actions_absolute=prev_abs,
++                                            current_state=raw_state,
++                                            relative_step=self._relative_step,
++                                            normalizer_step=self._normalizer_step,
++                                            policy_device=policy_device,
++                                        )
++
++                            if prev_actions is not None:
++                                prev_actions = _normalize_prev_actions_length(
++                                    prev_actions, target_steps=self._rtc_config.execution_horizon
++                                )
++
++                            actions = self._policy.predict_action_chunk(
++                                preprocessed, inference_delay=delay, prev_chunk_left_over=prev_actions
+                             )
+ 
+-                        actions = self._policy.predict_action_chunk(
+-                            preprocessed, inference_delay=delay, prev_chunk_left_over=prev_actions
+-                        )
+-
+-                        original = actions.squeeze(0).clone()
+-                        processed = self._postprocessor(actions).squeeze(0)
+-                        new_latency = time.perf_counter() - current_time
+-                        new_delay = math.ceil(new_latency / time_per_chunk)
++                            original = actions.squeeze(0).clone()
++                            processed = self._postprocessor(actions).squeeze(0)
++                            new_latency = time.perf_counter() - current_time
++                            new_delay = math.ceil(new_latency / time_per_chunk)
+ 
+-                        inference_count += 1
+-                        consecutive_errors = 0
+-                        is_warmup = self._use_torch_compile and inference_count <= warmup_required
+-                        if is_warmup:
+-                            latency_tracker.reset()
+-                        else:
+-                            latency_tracker.add(new_latency)
++                            inference_count += 1
++                            consecutive_errors = 0
++                            is_warmup = self._use_torch_compile and inference_count <= warmup_required
++                            if is_warmup:
++                                latency_tracker.reset()
++                            else:
++                                latency_tracker.add(new_latency)
+ 
+-                        queue.merge(original, processed, new_delay, idx_before)
++                            queue.merge(original, processed, new_delay, idx_before)
+ 
+                         if (
+                             is_warmup
+diff --git a/src/lerobot/rollout/inference/sync.py b/src/lerobot/rollout/inference/sync.py
+index 2bb05b6a..eff343ad 100644
+--- a/src/lerobot/rollout/inference/sync.py
++++ b/src/lerobot/rollout/inference/sync.py
+@@ -94,6 +94,13 @@ class SyncInferenceEngine(InferenceEngine):
+         self._preprocessor.reset()
+         self._postprocessor.reset()
+ 
++    def set_task(self, task: str) -> None:
++        """Replace the language instruction without reloading the policy."""
++        if not task.strip():
++            raise ValueError("Inference task must not be empty")
++        self._task = task
++        logger.info("Sync inference task updated: %s", task)
++
+     def get_action(self, obs_frame: dict | None) -> torch.Tensor | None:
+         """Run the full inference pipeline on ``obs_frame`` and return an action tensor."""
+         if obs_frame is None:
+diff --git a/src/lerobot/rollout/prompt_schedule.py b/src/lerobot/rollout/prompt_schedule.py
+new file mode 100644
+index 00000000..e72f2159
+--- /dev/null
++++ b/src/lerobot/rollout/prompt_schedule.py
+@@ -0,0 +1,153 @@
++# Copyright 2025 The HuggingFace Inc. team. All rights reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++"""CSV-backed per-episode prompt schedules for episodic rollouts."""
++
++from __future__ import annotations
++
++import csv
++from dataclasses import dataclass
++from pathlib import Path
++
++
++@dataclass(frozen=True)
++class PromptScheduleEntry:
++    """One selected CSV row, with optional operator-facing metadata."""
++
++    source_row_index: int
++    episode_number: str
++    task_type: str
++    condition: str
++    prompt: str
++    scene_description: str
++
++
++@dataclass(frozen=True)
++class PromptSchedule:
++    """A validated, sliced prompt schedule.
++
++    ``entries[dataset_episode_index]`` is deliberately keyed by the number
++    of episodes already saved in the rollout dataset.  A discarded episode
++    therefore reuses the same row, while a resumed dataset continues with
++    the next row automatically.
++    """
++
++    path: Path
++    entries: tuple[PromptScheduleEntry, ...]
++
++    def entry_for_dataset_episode(self, dataset_episode_index: int) -> PromptScheduleEntry:
++        if dataset_episode_index < 0:
++            raise ValueError(f"dataset_episode_index must be >= 0, got {dataset_episode_index}")
++        if dataset_episode_index >= len(self.entries):
++            raise IndexError(
++                f"Prompt schedule '{self.path}' has {len(self.entries)} selected rows, "
++                f"but rollout dataset episode {dataset_episode_index} needs another prompt."
++            )
++        return self.entries[dataset_episode_index]
++
++    def remaining_for_target(self, target_num_episodes: int, existing_num_episodes: int) -> int:
++        """Validate a target-sized run and return how many episodes remain."""
++        if target_num_episodes < 1:
++            raise ValueError(f"target_num_episodes must be >= 1, got {target_num_episodes}")
++        if target_num_episodes > len(self.entries):
++            raise ValueError(
++                f"Requested {target_num_episodes} episodes, but prompt schedule '{self.path}' "
++                f"contains only {len(self.entries)} selected rows."
++            )
++        if existing_num_episodes > target_num_episodes:
++            raise ValueError(
++                f"Rollout dataset already contains {existing_num_episodes} episodes, which exceeds "
++                f"the configured target of {target_num_episodes}."
++            )
++        return target_num_episodes - existing_num_episodes
++
++
++def _require_column(fieldnames: list[str], column: str, label: str) -> None:
++    if column not in fieldnames:
++        raise ValueError(
++            f"Prompt schedule is missing the {label} column '{column}'. "
++            f"Available columns: {fieldnames}"
++        )
++
++
++def load_prompt_schedule(
++    path: str | Path,
++    *,
++    prompt_column: str = "Prompt",
++    scene_column: str = "Scene Description",
++    episode_column: str = "Episode Number",
++    condition_column: str = "Condition",
++    task_column: str = "Task Being Assessed",
++    start_row: int = 0,
++    num_rows: int | None = None,
++) -> PromptSchedule:
++    """Load and validate a CSV prompt schedule.
++
++    ``start_row`` and ``num_rows`` count data rows, not the header.  The
++    ``utf-8-sig`` encoding accepts both ordinary UTF-8 and files with a BOM,
++    which is common for CSVs exported by spreadsheet applications.
++    """
++    schedule_path = Path(path).expanduser()
++    if start_row < 0:
++        raise ValueError(f"start_row must be >= 0, got {start_row}")
++    if num_rows is not None and num_rows < 1:
++        raise ValueError(f"num_rows must be >= 1 when set, got {num_rows}")
++    if not schedule_path.is_file():
++        raise FileNotFoundError(f"Prompt schedule CSV not found: {schedule_path}")
++
++    with schedule_path.open("r", encoding="utf-8-sig", newline="") as csv_file:
++        reader = csv.DictReader(csv_file)
++        if reader.fieldnames is None:
++            raise ValueError(f"Prompt schedule CSV has no header: {schedule_path}")
++        fieldnames = [name.strip() for name in reader.fieldnames]
++        reader.fieldnames = fieldnames
++        _require_column(fieldnames, prompt_column, "prompt")
++        raw_rows = list(reader)
++
++    stop_row = None if num_rows is None else start_row + num_rows
++    selected_rows = raw_rows[start_row:stop_row]
++    if not selected_rows:
++        raise ValueError(
++            f"Prompt schedule selection is empty: start_row={start_row}, num_rows={num_rows}, "
++            f"CSV rows={len(raw_rows)}."
++        )
++    if num_rows is not None and len(selected_rows) != num_rows:
++        raise ValueError(
++            f"Requested {num_rows} prompt rows starting at {start_row}, but only "
++            f"{len(selected_rows)} rows are available."
++        )
++
++    entries: list[PromptScheduleEntry] = []
++    for offset, row in enumerate(selected_rows):
++        source_row_index = start_row + offset
++        prompt = (row.get(prompt_column) or "").strip()
++        if not prompt:
++            # +2 converts a zero-based data-row index to a one-based CSV line
++            # number while accounting for the header.
++            raise ValueError(
++                f"Prompt schedule has an empty prompt in CSV line {source_row_index + 2} "
++                f"(data row {source_row_index})."
++            )
++        entries.append(
++            PromptScheduleEntry(
++                source_row_index=source_row_index,
++                episode_number=(row.get(episode_column) or "").strip(),
++                task_type=(row.get(task_column) or "").strip(),
++                condition=(row.get(condition_column) or "").strip(),
++                prompt=prompt,
++                scene_description=(row.get(scene_column) or "").strip(),
++            )
++        )
++
++    return PromptSchedule(path=schedule_path.resolve(), entries=tuple(entries))
+diff --git a/src/lerobot/rollout/strategies/episodic.py b/src/lerobot/rollout/strategies/episodic.py
+index 15b9bb97..1f59b035 100644
+--- a/src/lerobot/rollout/strategies/episodic.py
++++ b/src/lerobot/rollout/strategies/episodic.py
+@@ -48,6 +48,7 @@ from lerobot.utils.visualization_utils import log_visualization_data
+ 
+ from ..configs import EpisodicStrategyConfig
+ from ..context import RolloutContext
++from ..prompt_schedule import PromptSchedule, PromptScheduleEntry, load_prompt_schedule
+ from .core import RolloutStrategy, safe_push_to_hub, send_next_action
+ 
+ logger = logging.getLogger(__name__)
+@@ -63,7 +64,9 @@ class EpisodicStrategy(RolloutStrategy):
+     drives the robot; if none is present the robot returns to its initial joint positions captured at startup.
+ 
+     The policy state (hidden state, RTC queue, interpolator) is reset at
+-    the start of each recording episode.
++    the start of each recording episode.  If ``config.prompt_file`` is
++    set, each saved episode uses its corresponding CSV prompt without
++    reloading the policy.
+ 
+     Keyboard events:
+         right arrow  → end current episode or reset phase early
+@@ -77,13 +80,66 @@ class EpisodicStrategy(RolloutStrategy):
+         super().__init__(config)
+         self._listener = None
+         self._events: dict | None = None
++        self._prompt_schedule: PromptSchedule | None = None
+ 
+     def setup(self, ctx: RolloutContext) -> None:
+         """Start the inference engine and attach the keyboard listener."""
++        if self.config.prompt_file is not None:
++            self._prompt_schedule = load_prompt_schedule(
++                self.config.prompt_file,
++                prompt_column=self.config.prompt_column,
++                scene_column=self.config.scene_column,
++                episode_column=self.config.episode_column,
++                condition_column=self.config.condition_column,
++                task_column=self.config.task_column,
++                start_row=self.config.start_row,
++                num_rows=self.config.num_rows,
++            )
++            logger.info(
++                "Loaded %d prompt-schedule rows from %s",
++                len(self._prompt_schedule.entries),
++                self._prompt_schedule.path,
++            )
+         self._init_engine(ctx)
+         self._listener, self._events = init_keyboard_listener()
+         logger.info("Episodic strategy ready")
+ 
++    @staticmethod
++    def _log_schedule_entry(
++        entry: PromptScheduleEntry,
++        *,
++        dataset_episode_index: int,
++        heading: str,
++    ) -> None:
++        """Show the operator the prompt and physical setup for one scheduled episode."""
++        evaluation_episode = entry.episode_number or str(entry.source_row_index)
++        logger.info(
++            "%s | dataset episode=%d | evaluation episode=%s | CSV data row=%d",
++            heading,
++            dataset_episode_index,
++            evaluation_episode,
++            entry.source_row_index,
++        )
++        if entry.task_type or entry.condition:
++            logger.info(
++                "Task=%s | Condition=%s",
++                entry.task_type or "(unspecified)",
++                entry.condition or "(unspecified)",
++            )
++        logger.info("Prompt: %s", entry.prompt)
++        if entry.scene_description:
++            logger.info("Scene setup: %s", entry.scene_description)
++
++    def _prepare_episode_inference(self, task: str) -> None:
++        """Switch language and clear every episode-scoped inference cache."""
++        self._engine.pause()
++        if task:
++            self._engine.set_task(task)
++        self._engine.reset()
++        self._interpolator.reset()
++        self._cached_obs_processed = None
++        self._engine.resume()
++
+     def run(self, ctx: RolloutContext) -> None:
+         """Main multi-episode recording loop."""
+         cfg = ctx.runtime.cfg
+@@ -100,6 +156,26 @@ class EpisodicStrategy(RolloutStrategy):
+         num_episodes = dataset_cfg.num_episodes
+         single_task = dataset_cfg.single_task or cfg.task
+         play_sounds = cfg.play_sounds
++        if self._prompt_schedule is not None:
++            episodes_to_record = self._prompt_schedule.remaining_for_target(
++                target_num_episodes=num_episodes,
++                existing_num_episodes=dataset.num_episodes,
++            )
++            logger.info(
++                "Prompt-scheduled rollout target: %d total episodes (%d existing, %d remaining)",
++                num_episodes,
++                dataset.num_episodes,
++                episodes_to_record,
++            )
++            if single_task:
++                logger.info(
++                    "Ignoring static task '%s' because --strategy.prompt_file supplies per-episode tasks",
++                    single_task,
++                )
++        else:
++            # Preserve the existing behavior for ordinary single-task episodic
++            # runs: num_episodes means episodes to add in this invocation.
++            episodes_to_record = num_episodes
+ 
+         display_compressed = (
+             True
+@@ -110,16 +186,35 @@ class EpisodicStrategy(RolloutStrategy):
+         with VideoEncodingManager(dataset):
+             try:
+                 recorded_episodes = 0
+-                while recorded_episodes < num_episodes and not events["stop_recording"]:
++                while recorded_episodes < episodes_to_record and not events["stop_recording"]:
+                     if ctx.runtime.shutdown_event.is_set():
+                         break
+ 
+-                    # Reset policy state at episode start (discard leftover hidden state / queue)
+-                    self._engine.reset()
+-                    self._interpolator.reset()
+-                    self._engine.resume()
++                    episode_task = single_task
++                    schedule_entry = None
++                    if self._prompt_schedule is not None:
++                        schedule_entry = self._prompt_schedule.entry_for_dataset_episode(
++                            dataset.num_episodes
++                        )
++                        episode_task = schedule_entry.prompt
++                        self._log_schedule_entry(
++                            schedule_entry,
++                            dataset_episode_index=dataset.num_episodes,
++                            heading="Starting scheduled rollout",
++                        )
++
++                    # Task must change before clearing policy, processor, RTC
++                    # queue, and interpolation state.  This guarantees that no
++                    # action cached under the previous prompt crosses the
++                    # episode boundary.
++                    self._prepare_episode_inference(episode_task)
+ 
+-                    log_say(f"Recording episode {dataset.num_episodes}", play_sounds)
++                    spoken_episode = (
++                        schedule_entry.episode_number
++                        if schedule_entry is not None and schedule_entry.episode_number
++                        else str(dataset.num_episodes)
++                    )
++                    log_say(f"Recording episode {spoken_episode}", play_sounds)
+                     self._policy_loop(
+                         ctx=ctx,
+                         robot=robot,
+@@ -128,14 +223,27 @@ class EpisodicStrategy(RolloutStrategy):
+                         fps=fps,
+                         control_time_s=episode_time_s,
+                         dataset=dataset,
+-                        single_task=single_task,
++                        single_task=episode_task,
+                     )
+ 
+                     # Reset phase, skip after the last episode (but run when re-recording)
+                     if not events["stop_recording"] and (
+-                        recorded_episodes < num_episodes - 1 or events["rerecord_episode"]
++                        recorded_episodes < episodes_to_record - 1 or events["rerecord_episode"]
+                     ):
+                         log_say("Reset the environment", play_sounds)
++                        if self._prompt_schedule is not None:
++                            upcoming_dataset_episode = dataset.num_episodes + (
++                                0 if events["rerecord_episode"] else 1
++                            )
++                            if upcoming_dataset_episode < num_episodes:
++                                upcoming_entry = self._prompt_schedule.entry_for_dataset_episode(
++                                    upcoming_dataset_episode
++                                )
++                                self._log_schedule_entry(
++                                    upcoming_entry,
++                                    dataset_episode_index=upcoming_dataset_episode,
++                                    heading="Prepare this setup during reset",
++                                )
+ 
+                         if teleop:
+                             # Smooth handover so the transition to teleop control is jerk-free.
+diff --git a/src/lerobot/scripts/lerobot_rollout.py b/src/lerobot/scripts/lerobot_rollout.py
+index 87907072..ad98b488 100644
+--- a/src/lerobot/scripts/lerobot_rollout.py
++++ b/src/lerobot/scripts/lerobot_rollout.py
+@@ -124,6 +124,20 @@ Usage examples
+         --dataset.num_episodes=20 \\
+         --dataset.single_task="Grab the cube"
+ 
++    # Episodic evaluation — one CSV prompt per episode, policy loaded once
++    lerobot-rollout \\
++        --strategy.type=episodic \\
++        --strategy.prompt_file=/path/to/evaluation_checklist.csv \\
++        --strategy.prompt_column=Prompt \\
++        --strategy.scene_column="Scene Description" \\
++        --strategy.start_row=0 \\
++        --strategy.num_rows=110 \\
++        --policy.path=user/my_policy \\
++        --robot.type=so100_follower \\
++        --robot.port=/dev/ttyACM0 \\
++        --dataset.repo_id=user/rollout_scheduled_eval \\
++        --dataset.num_episodes=110
++
+     # Resume a previous sentry recording session
+     lerobot-rollout \\
+         --strategy.type=sentry \\
+diff --git a/tests/policies/vla0/test_vla0.py b/tests/policies/vla0/test_vla0.py
+new file mode 100644
+index 00000000..cda2b5dc
+--- /dev/null
++++ b/tests/policies/vla0/test_vla0.py
+@@ -0,0 +1,209 @@
++# Copyright 2026 The HuggingFace Inc. team. All rights reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++import base64
++import io
++from unittest.mock import MagicMock
++
++import numpy as np
++import pytest
++import torch
++
++from lerobot.policies.factory import get_policy_class, make_policy_config, make_pre_post_processors
++from lerobot.policies.vla0.configuration_vla0 import VLA0Config
++from lerobot.policies.vla0.modeling_vla0 import VLA0Policy
++from lerobot.rollout import RolloutConfig
++from lerobot.rollout.configs import EpisodicStrategyConfig
++from lerobot.rollout.inference import SyncInferenceEngine
++from lerobot.rollout.strategies.episodic import EpisodicStrategy
++from lerobot.utils.constants import ACTION, OBS_STATE
++
++
++class _FakeResponse:
++    def __init__(self, payload=None):
++        self._payload = payload
++
++    def raise_for_status(self) -> None:
++        return None
++
++    def json(self):
++        return self._payload
++
++
++class _FakeSession:
++    def __init__(self, actions: list[list[float]]):
++        self.actions = actions
++        self.get_calls = []
++        self.post_calls = []
++
++    def get(self, url, *, timeout):
++        self.get_calls.append((url, timeout))
++        return _FakeResponse({"status": "ok"})
++
++    def post(self, url, *, json, timeout):
++        self.post_calls.append((url, json, timeout))
++        return _FakeResponse(self.actions)
++
++
++def _decode_image(encoded: str) -> np.ndarray:
++    return np.load(io.BytesIO(base64.b64decode(encoded)), allow_pickle=False)
++
++
++def test_vla0_factory_registration_and_defaults():
++    config = make_policy_config("vla0", check_server_on_load=False)
++
++    assert isinstance(config, VLA0Config)
++    assert get_policy_class("vla0") is VLA0Policy
++    assert config.device == "cpu"
++    assert list(config.image_features) == [
++        "observation.images.wrist",
++        "observation.images.middle",
++    ]
++    assert config.action_feature.shape == (6,)
++
++
++def test_vla0_policy_serializes_observation_and_caches_actions():
++    actions = np.arange(24, dtype=np.float32).reshape(4, 6).tolist()
++    session = _FakeSession(actions)
++    config = VLA0Config(check_server_on_load=True, n_action_steps=2)
++    policy = VLA0Policy(config, session=session)
++    batch = {
++        "observation.images.wrist": torch.ones(1, 3, 2, 3),
++        "observation.images.middle": torch.zeros(1, 3, 2, 3),
++        OBS_STATE: torch.arange(6, dtype=torch.float32).unsqueeze(0),
++        "task": ["pick up the ball"],
++    }
++
++    first = policy.select_action(batch)
++    second = policy.select_action(batch)
++    third = policy.select_action(batch)
++
++    assert session.get_calls == [("http://127.0.0.1:10000/health", 5.0)]
++    assert len(session.post_calls) == 2
++    url, payload, timeout = session.post_calls[0]
++    assert url == "http://127.0.0.1:10000/predict_base64"
++    assert timeout == 300.0
++    assert payload["state"] == pytest.approx([0, 1, 2, 3, 4, 5])
++    assert payload["instr"] == "pick up the ball"
++    assert np.all(_decode_image(payload["base64_rgb"][0]) == 255)
++    assert np.all(_decode_image(payload["base64_rgb"][1]) == 0)
++    torch.testing.assert_close(first, torch.tensor(actions[0]).unsqueeze(0))
++    torch.testing.assert_close(second, torch.tensor(actions[1]).unsqueeze(0))
++    torch.testing.assert_close(third, torch.tensor(actions[0]).unsqueeze(0))
++
++
++def test_vla0_processors_keep_server_inputs_unnormalized_on_cpu():
++    config = VLA0Config(check_server_on_load=False)
++    # VLA-0 has no local processor artifacts even when its adapter config was
++    # loaded from a path; processing belongs to the remote service.
++    preprocessor, postprocessor = make_pre_post_processors(config, pretrained_path="unused")
++    batch = {
++        "observation.images.wrist": torch.zeros(3, 2, 2),
++        "observation.images.middle": torch.ones(3, 2, 2),
++        OBS_STATE: torch.arange(6, dtype=torch.float64),
++        "task": "move the block",
++    }
++
++    processed = preprocessor(batch)
++    action = postprocessor(torch.arange(6, dtype=torch.float64).unsqueeze(0))
++
++    assert processed["observation.images.wrist"].shape == (1, 3, 2, 2)
++    assert processed[OBS_STATE].shape == (1, 6)
++    assert processed[OBS_STATE].dtype == torch.float32
++    assert processed["task"] == ["move the block"]
++    assert action.device.type == "cpu"
++    assert action.dtype == torch.float32
++
++
++def test_vla0_runs_through_sync_rollout_inference_engine():
++    actions = np.arange(24, dtype=np.float32).reshape(4, 6).tolist()
++    session = _FakeSession(actions)
++    config = VLA0Config(check_server_on_load=False)
++    policy = VLA0Policy(config, session=session)
++    preprocessor, postprocessor = make_pre_post_processors(config)
++    engine = SyncInferenceEngine(
++        policy=policy,
++        preprocessor=preprocessor,
++        postprocessor=postprocessor,
++        dataset_features={ACTION: {"names": config.action_feature_names}},
++        ordered_action_keys=config.action_feature_names,
++        task="pick up the ball",
++        device="cpu",
++        robot_type="so_follower",
++    )
++    observation = {
++        "observation.images.wrist": np.full((2, 3, 3), 255, dtype=np.uint8),
++        "observation.images.middle": np.zeros((2, 3, 3), dtype=np.uint8),
++        OBS_STATE: np.arange(6, dtype=np.float32),
++    }
++
++    action = engine.get_action(observation)
++
++    torch.testing.assert_close(action, torch.tensor(actions[0]))
++    assert session.post_calls[0][1]["instr"] == "pick up the ball"
++
++
++def test_vla0_episodic_prompt_switch_clears_cached_action_chunk():
++    actions = np.arange(24, dtype=np.float32).reshape(4, 6).tolist()
++    session = _FakeSession(actions)
++    config = VLA0Config(check_server_on_load=False, n_action_steps=4)
++    policy = VLA0Policy(config, session=session)
++    preprocessor, postprocessor = make_pre_post_processors(config)
++    engine = SyncInferenceEngine(
++        policy=policy,
++        preprocessor=preprocessor,
++        postprocessor=postprocessor,
++        dataset_features={ACTION: {"names": config.action_feature_names}},
++        ordered_action_keys=config.action_feature_names,
++        task="first CSV prompt",
++        device="cpu",
++        robot_type="so_follower",
++    )
++    observation = {
++        "observation.images.wrist": np.full((2, 3, 3), 255, dtype=np.uint8),
++        "observation.images.middle": np.zeros((2, 3, 3), dtype=np.uint8),
++        OBS_STATE: np.arange(6, dtype=np.float32),
++    }
++
++    first_action = engine.get_action(observation)
++    second_action = engine.get_action(observation)
++    assert len(session.post_calls) == 1
++    assert session.post_calls[0][1]["instr"] == "first CSV prompt"
++    torch.testing.assert_close(first_action, torch.tensor(actions[0]))
++    torch.testing.assert_close(second_action, torch.tensor(actions[1]))
++
++    strategy = EpisodicStrategy(EpisodicStrategyConfig())
++    strategy._engine = engine
++    strategy._interpolator = MagicMock()
++    strategy._cached_obs_processed = {"stale": True}
++    strategy._prepare_episode_inference("second CSV prompt")
++
++    next_episode_action = engine.get_action(observation)
++    assert len(session.post_calls) == 2
++    assert session.post_calls[1][1]["instr"] == "second CSV prompt"
++    # Resetting at the episode boundary must discard the two actions that
++    # remained in VLA-0's previous four-action queue.
++    torch.testing.assert_close(next_episode_action, torch.tensor(actions[0]))
++    strategy._interpolator.reset.assert_called_once_with()
++    assert strategy._cached_obs_processed is None
++
++
++def test_rollout_accepts_pathless_vla0_policy():
++    config = VLA0Config(check_server_on_load=False)
++
++    rollout = RolloutConfig(robot=object(), policy=config)
++
++    assert rollout.policy is config
++    assert rollout.policy.pretrained_path is None
++    assert rollout.device == "cpu"
+diff --git a/tests/test_rollout.py b/tests/test_rollout.py
+index 85a29ff4..8e49cc37 100644
+--- a/tests/test_rollout.py
++++ b/tests/test_rollout.py
+@@ -17,7 +17,7 @@
+ from __future__ import annotations
+ 
+ import dataclasses
+-from unittest.mock import MagicMock
++from unittest.mock import MagicMock, call
+ 
+ import pytest
+ import torch
+@@ -106,6 +106,97 @@ def test_sentry_config_defaults():
+     assert cfg.target_video_file_size_mb is None
+ 
+ 
++# ---------------------------------------------------------------------------
++# Episodic prompt schedules
++# ---------------------------------------------------------------------------
++
++
++def _write_prompt_schedule(tmp_path):
++    path = tmp_path / "evaluation.csv"
++    path.write_text(
++        "\ufeffEpisode Number,Task Being Assessed,Condition,Prompt,Scene Description\n"
++        '0,State Recognition,Held-out semantic,"Place the closed white cup in the bowl.",S-H01\n'
++        '1,Counting,Held-out semantic,"Leave exactly one object in the bowl.",C-H01\n'
++        '2,Size Recognition,Matched skill control,"Put the green block in the bowl.",SZ-H01-CTRL\n',
++        encoding="utf-8",
++    )
++    return path
++
++
++def test_load_prompt_schedule_slice_and_metadata(tmp_path):
++    from lerobot.rollout.prompt_schedule import load_prompt_schedule
++
++    schedule = load_prompt_schedule(_write_prompt_schedule(tmp_path), start_row=1, num_rows=2)
++
++    assert len(schedule.entries) == 2
++    assert schedule.entries[0].source_row_index == 1
++    assert schedule.entries[0].episode_number == "1"
++    assert schedule.entries[0].task_type == "Counting"
++    assert schedule.entries[0].condition == "Held-out semantic"
++    assert schedule.entries[0].prompt == "Leave exactly one object in the bowl."
++    assert schedule.entries[0].scene_description == "C-H01"
++
++
++def test_prompt_schedule_resume_and_rerecord_cursor(tmp_path):
++    from lerobot.rollout.prompt_schedule import load_prompt_schedule
++
++    schedule = load_prompt_schedule(_write_prompt_schedule(tmp_path))
++
++    assert schedule.remaining_for_target(target_num_episodes=3, existing_num_episodes=1) == 2
++    # A discarded episode does not increment dataset.num_episodes, so looking
++    # up the same dataset episode returns the same prompt row.
++    assert schedule.entry_for_dataset_episode(1) is schedule.entry_for_dataset_episode(1)
++    assert schedule.entry_for_dataset_episode(1).episode_number == "1"
++
++
++def test_prompt_schedule_rejects_missing_or_empty_prompt(tmp_path):
++    from lerobot.rollout.prompt_schedule import load_prompt_schedule
++
++    missing_column = tmp_path / "missing.csv"
++    missing_column.write_text(
++        "Episode Number,Task Being Assessed,Condition,Scene Description\n"
++        "0,Counting,Held-out semantic,C-H01\n",
++        encoding="utf-8",
++    )
++    with pytest.raises(ValueError, match="missing the prompt column"):
++        load_prompt_schedule(missing_column)
++
++    empty_prompt = tmp_path / "empty.csv"
++    empty_prompt.write_text(
++        "Episode Number,Task Being Assessed,Condition,Prompt,Scene Description\n"
++        "0,Counting,Held-out semantic,,C-H01\n",
++        encoding="utf-8",
++    )
++    with pytest.raises(ValueError, match="empty prompt"):
++        load_prompt_schedule(empty_prompt)
++
++
++def test_prompt_schedule_allows_prompt_only_csv(tmp_path):
++    from lerobot.rollout.prompt_schedule import load_prompt_schedule
++
++    prompt_only = tmp_path / "prompts.csv"
++    prompt_only.write_text("Prompt\nPick up the block.\n", encoding="utf-8")
++
++    entry = load_prompt_schedule(prompt_only).entries[0]
++    assert entry.prompt == "Pick up the block."
++    assert entry.episode_number == ""
++    assert entry.scene_description == ""
++
++
++def test_episodic_prompt_config_validation():
++    from lerobot.rollout import EpisodicStrategyConfig
++
++    cfg = EpisodicStrategyConfig(prompt_file="evaluation.csv", start_row=10, num_rows=20)
++    assert cfg.prompt_column == "Prompt"
++    assert cfg.start_row == 10
++    assert cfg.num_rows == 20
++
++    with pytest.raises(ValueError, match="require --strategy.prompt_file"):
++        EpisodicStrategyConfig(start_row=1)
++    with pytest.raises(ValueError, match="num_rows must be >= 1"):
++        EpisodicStrategyConfig(prompt_file="evaluation.csv", num_rows=0)
++
++
+ # ---------------------------------------------------------------------------
+ # RolloutRingBuffer
+ # ---------------------------------------------------------------------------
+@@ -251,6 +342,65 @@ def test_create_inference_engine_sync():
+     assert isinstance(engine, SyncInferenceEngine)
+ 
+ 
++def test_inference_engines_can_switch_task_without_reloading():
++    from lerobot.policies.rtc.configuration_rtc import RTCConfig
++    from lerobot.rollout import RTCInferenceEngine, SyncInferenceEngine
++
++    sync = SyncInferenceEngine(
++        policy=MagicMock(),
++        preprocessor=MagicMock(),
++        postprocessor=MagicMock(),
++        dataset_features={},
++        ordered_action_keys=[],
++        task="old prompt",
++        device="cpu",
++        robot_type="mock",
++    )
++    sync.set_task("new prompt")
++    assert sync._task == "new prompt"
++
++    preprocessor = MagicMock()
++    preprocessor.steps = []
++    rtc = RTCInferenceEngine(
++        policy=MagicMock(),
++        preprocessor=preprocessor,
++        postprocessor=MagicMock(),
++        robot_wrapper=MagicMock(robot_type="mock"),
++        rtc_config=RTCConfig(),
++        hw_features={},
++        task="old prompt",
++        fps=30.0,
++        device="cpu",
++    )
++    rtc.set_task("new prompt")
++    assert rtc._task == "new prompt"
++    rtc._obs_holder["obs"] = {"stale": True}
++    rtc._action_queue = MagicMock()
++    rtc.reset()
++    assert rtc._obs_holder["obs"] is None
++    rtc._action_queue.clear.assert_called_once_with()
++
++
++def test_episodic_episode_preparation_switches_task_and_resets_caches():
++    from lerobot.rollout import EpisodicStrategy, EpisodicStrategyConfig
++
++    strategy = EpisodicStrategy(EpisodicStrategyConfig())
++    strategy._engine = MagicMock()
++    strategy._interpolator = MagicMock()
++    strategy._cached_obs_processed = {"stale": True}
++
++    strategy._prepare_episode_inference("new prompt")
++
++    assert strategy._engine.method_calls == [
++        call.pause(),
++        call.set_task("new prompt"),
++        call.reset(),
++        call.resume(),
++    ]
++    strategy._interpolator.reset.assert_called_once_with()
++    assert strategy._cached_obs_processed is None
++
++
+ # ---------------------------------------------------------------------------
+ # Pure functions
+ # ---------------------------------------------------------------------------
+-- 
+2.39.5 (Apple Git-154)
+

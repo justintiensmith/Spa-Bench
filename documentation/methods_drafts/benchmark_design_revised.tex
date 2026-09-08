@@ -1,0 +1,194 @@
+% Additional preamble requirements for Fig.~\ref{fig:missing_cell_matrix}:
+% \usepackage{tikz}
+% \usetikzlibrary{matrix,positioning}
+% \definecolor{ObservedCell}{HTML}{DCEAD7}
+% \definecolor{HeldOutCell}{HTML}{F4D0CC}
+
+\section{Benchmark Design}
+\label{sec:benchmark_design}
+
+\subsection{Benchmark Overview}
+
+Spa-Bench evaluates whether a robot policy can use concepts grounded in a visual scene to select and manipulate the correct object. The benchmark comprises six tabletop task families: State Recognition, Relational Placement, Referential Disambiguation, Ordinal Reference Ordering, Counting, and Size Recognition. All six tasks use the same underlying pick-and-place action family. Spa-Bench therefore holds the robot embodiment, workspace, receptacle, and broad manipulation behavior approximately constant while varying the semantic rule used to select the target object or determine whether an action is required. This design helps separate failures of scene interpretation from failures caused by an entirely novel motor behavior.
+
+All ordinal and spatial directions, including left, right, front, and behind, are defined from the robot's perspective rather than from an individual camera view. Table~\ref{tab:benchmark_tasks} summarizes the semantic decision and scene construction for each task.
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{The six Spa-Bench task families. The examples illustrate the evaluated reasoning rule rather than the complete prompt set.}
+\label{tab:benchmark_tasks}
+\begin{tabular}{p{0.16\textwidth} p{0.24\textwidth} p{0.27\textwidth} p{0.25\textwidth}}
+\toprule
+\textbf{Task} & \textbf{Semantic decision} & \textbf{Example instruction} & \textbf{Scene construction} \\
+\midrule
+State Recognition
+& Select the category member with the requested physical state.
+& ``Place the closed white cup in the bowl.''
+& Multiple same-category objects are present, but exactly one has the requested state. \\
+
+Relational Placement
+& Establish a directed spatial relation between a target and a reference object.
+& ``Place the green pen to the left of the red block.''
+& The target and reference are visible, and the requested relation is initially unsatisfied in movement-required trials. \\
+
+Referential Disambiguation
+& Select a candidate using its relation to one or more reference objects.
+& ``Place the object furthest from the blue block in the bowl.''
+& Candidate objects occur at controlled distances or positions relative to the reference object(s). \\
+
+Ordinal Reference Ordering
+& Select an object by its position in an ordered sequence.
+& ``Place the third object from the left in the bowl.''
+& Two, three, or four objects are arranged from the robot's left to right. \\
+
+Counting
+& Add or remove objects to produce the requested final count.
+& ``Leave exactly three objects in the bowl.''
+& Objects begin in the bowl and on the table, so reaching the goal may require addition, removal, or no action. \\
+
+Size Recognition
+& Select the object with the requested relative size.
+& ``Place the smallest object in the bowl.''
+& The target is defined by its size relative to the other visible candidates. \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Training Dataset}
+
+The Spa-Bench fine-tuning dataset contains 1,200 teleoperated demonstrations, with 200 demonstrations for each task family. Although the demonstrations share a common pick-and-place action structure, the instruction and scene determine which object should be manipulated and, for Counting and the diagnostic conditions described below, whether manipulation is required.
+
+The training manifest contains 321 unique instruction strings under exact string matching. These strings include surface-form variation such as ``move,'' ``place,'' ``put,'' and ``pick up~\ldots{} and place'' constructions. Masked prompts use familiar direct-object or more general manipulation language, whereas the evaluation paraphrases are excluded from training. The complete prompt manifest is released with the dataset so that the exact linguistic support for every training episode can be audited.
+
+The dataset uses 25 physical object instances spanning 11 object families. We define an object family as a group of objects with similar morphology. For example, the blocks, pens, and pencil sharpeners share geometry within their respective families while differing in color. The crushed Coke and Pepsi cans have nearly identical morphology but differ slightly in deformation, and the two airplane toys share a base morphology but differ in the presence of propellers. State Recognition additionally uses three cup types with two physical instances of each type. The two glass spice containers form a separate family because of their distinct morphology. Every object family serves as the target of at least 50 pick-and-place demonstrations distributed across different workspace regions.
+
+Of the 1,200 demonstrations, 883 (73.6\%) begin from the home configuration and 237 (19.8\%) begin from recovery configurations chosen to expose the policy to states encountered after imperfect or failed grasps. The Counting suite contains 80 additional demonstrations (6.7\% of the full dataset) labeled as post-drop starts in the manifest. The bowl remains in a fixed location throughout training. Holding the destination constant narrows the benchmark's scope and isolates target selection and scene interpretation from receptacle-localization and goal-position generalization.
+
+\begin{table}[t]
+\centering
+\small
+\caption{The 25 physical object instances used in training, grouped into 11 families with similar morphology.}
+\label{tab:objects}
+\begin{tabular}{@{}p{0.27\columnwidth}p{0.57\columnwidth}r@{}}
+\toprule
+\textbf{Object family} & \textbf{Physical instances} & \textbf{N} \\
+\midrule
+Blocks & Red, blue, green, yellow & 4 \\
+Pens & Green, yellow, blue & 3 \\
+Pencil sharpeners & Green, red & 2 \\
+Soda cans & Coke, Pepsi & 2 \\
+Airplane toys & With propellers, without propellers & 2 \\
+Cups & White A/B, striped A/B, brown A/B & 6 \\
+Spice containers & Glass A/B & 2 \\
+Pink marker & --- & 1 \\
+Green highlighter & --- & 1 \\
+Blue tape ball & --- & 1 \\
+Juggling ball & --- & 1 \\
+\midrule
+\textbf{Total} & & \textbf{25} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Controlled Missing-Cell Design}
+
+Let $c$ denote a semantic concept and $a$ an argument to which that concept applies, such as an object identity, physical state, spatial role, ordinal position, count transition, or size role. For every held-out pair $(c^{\ast},a^{\ast})$, training contains $c^{\ast}$ with other arguments and $a^{\ast}$ under other supported instructions, but never the target composition $c^{\ast}(a^{\ast})$. We refer to the absent concept--argument composition as a \emph{missing cell}. Compositional-transfer evaluation queries the missing cell while keeping the component concept, target identity, and required physical behavior represented individually in training.
+
+A \emph{masked demonstration} preserves the recorded scene, target object, and physical trajectory but replaces the held-out concept instruction with a familiar instruction that does not express the withheld binding. For example, a Relational Placement demonstration may physically move the green pen to the right of the red block while using the instruction ``Place the green pen next to the red block.'' The policy therefore observes the ordered object pair and relevant manipulation without receiving a positive example that binds \emph{right} to that pair.
+
+\input{missing_cell_matrix}
+
+Table~\ref{tab:held_out_design} reports the resulting support and withheld compositions for all six task families.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Training support and withheld compositions in the final 1,200-demonstration prompt manifest. The listed role counts are mutually exclusive within each task.}
+\label{tab:held_out_design}
+\begin{tabular}{p{0.18\textwidth} p{0.40\textwidth} p{0.34\textwidth}}
+\toprule
+\textbf{Task} & \textbf{Training support} & \textbf{Missing cell(s)} \\
+\midrule
+State Recognition
+& 105 explicit object--state demonstrations and 95 state-masked physical exposures. Every state word and target category is explicitly represented elsewhere.
+& White cup--upside-down; striped cup--open; brown cup--closed; spice container--upright. \\
+
+Relational Placement
+& 166 explicit directed-relation demonstrations and 34 masked demonstrations containing the green-pen/red-block pair.
+& Left, right, front, and behind for the green-pen/red-block pair, in both target--reference orders. \\
+
+Referential Disambiguation
+& 150 explicit relation--category demonstrations and 50 masked direct-name demonstrations.
+& Airplane--furthest; crushed soda can--closest; pencil sharpener--between. \\
+
+Ordinal Reference Ordering
+& 127 explicit ordinal demonstrations and 73 masked direct-name demonstrations across sequences of two, three, and four objects.
+& Selected sequence-length--position--identity combinations, with equivalent left- and right-based descriptions withheld together. \\
+
+Counting
+& 140 explicit goal-count demonstrations and 60 masked direct-action demonstrations that retain the held-out physical transitions.
+& Goal one through $2\rightarrow1$ removal; goal three through $2\rightarrow3$ addition. \\
+
+Size Recognition
+& 140 explicit size-grounding demonstrations; 40 masked size--identity demonstrations, comprising 20 for each missing cell; and 20 additional direct-object controls, with five per object identity.
+& Green block--largest; juggling ball--smallest. \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Two task-specific constraints prevent the training split from leaking the held-out binding. First, State Recognition uses an incomplete object--state factorial. Explicit state demonstrations contain two objects of the same category, exactly one of which satisfies the instruction. The non-queried state axis is controlled: open/closed comparisons use upright containers, whereas upright/upside-down comparisons hold open/closed status constant. A state-masked demonstration uses a category-only prompt and contains only one object of the target category, preventing the prompt from identifying a held-out state by elimination.
+
+Second, Ordinal Reference Ordering represents the $k$-th physical position from the robot's left as $L_k$. In a four-object sequence, for example, $L_1$ is both first from the left and fourth from the right. We therefore withhold equivalent left- and right-based descriptions of a missing physical position together. Two-, three-, and four-object sequences appear in training. The recorded three-object demonstrations target only $L_1$ and $L_3$, so we do not claim in-distribution coverage of the three-object middle position $L_2$.
+
+\subsection{Evaluation Conditions and Rollout Allocation}
+
+A complete Spa-Bench evaluation comprises 900 physical robot rollouts: 300 primary compositional-transfer trials and 600 diagnostic trials. The Size Recognition suite contains 130 trials, Relational Placement contains 170, and each of the remaining four suites contains 150. Table~\ref{tab:evaluation_allocation} gives the complete allocation.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Rollout allocation for a complete model evaluation. The cross-task/novel-object condition uses a globally novel object only for State Recognition; the other five tasks use objects represented elsewhere in the training dataset.}
+\label{tab:evaluation_allocation}
+\begin{tabular}{lrrrrrrr}
+\toprule
+\textbf{Evaluation component} & \textbf{State} & \textbf{Relational} & \textbf{Referential} & \textbf{Ordinal} & \textbf{Counting} & \textbf{Size} & \textbf{Total} \\
+\midrule
+Compositional transfer & 50 & 50 & 50 & 50 & 50 & 50 & 300 \\
+In-distribution concept baseline & 20 & 20 & 20 & 20 & 20 & 20 & 120 \\
+Matched manipulation control & 20 & 20 & 20 & 20 & 20 & 20 & 120 \\
+Language robustness & 20 & 20 & 20 & 20 & 20 & 20 & 120 \\
+Cross-task/novel-object diagnostic & 20 & 20 & 20 & 20 & 20 & 20 & 120 \\
+No-intervention diagnostic & 20 & 20 & 20 & 20 & 20 & 0 & 100 \\
+Relational movement-required control & 0 & 20 & 0 & 0 & 0 & 0 & 20 \\
+\midrule
+\textbf{Total} & \textbf{150} & \textbf{170} & \textbf{150} & \textbf{150} & \textbf{150} & \textbf{130} & \textbf{900} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{Compositional transfer.}
+The 50 compositional-transfer trials per task form the primary evaluation. The model has encountered the relevant concept, object, and physical action individually but has not encountered their selected composition. Across the six tasks, this produces 300 primary transfer trials for a complete model evaluation.
+
+\paragraph{In-distribution and matched-manipulation controls.}
+The 20 in-distribution trials per task reproduce concept--argument combinations explicitly represented in the training manifest. They establish whether the model can execute the task in familiar combinations before its transfer performance is interpreted. The 20 matched-manipulation controls use the same or closely matched objects and scenes as the compositional-transfer trials but replace the missing-cell instruction with a training-supported instruction. These controls test whether a transfer failure can instead be explained by target recognition or manipulation difficulty.
+
+\paragraph{Language robustness.}
+Each task contains 10 paraphrases of compositional-transfer instructions and 10 paraphrases of matched-control instructions. The corresponding nominal scene is reused and only the wording is changed. The two subsets are reported separately because one measures robustness for a withheld composition whereas the other measures robustness for a training-supported composition.
+
+\paragraph{Cross-task and novel objects.}
+For five tasks, the cross-task-object diagnostic applies a task concept to an object that appears elsewhere in the 1,200-demonstration dataset but was not used to teach that concept. Depending on the paired scene, the cross-task object may serve as the target, distractor, reference, or non-target candidate; results are therefore reported by role as well as in aggregate. State Recognition is the exception because none of the objects in the other five tasks naturally supports all four evaluated states: open, closed, upright, and upside-down. Its 20 trials instead use a black cup that is globally unseen during fine-tuning but is similar in geometry and size to the brown training cup. We label this condition as a novel-object pilot rather than treating it as directly equivalent to the cross-task diagnostics in the other tasks.
+
+\paragraph{No-intervention diagnostics.}
+Five tasks contain 20 trials in which the correct response is to remain still. In Counting and Relational Placement, the requested goal is already satisfied. In State Recognition, no object satisfies the requested state--category conjunction. In Ordinal Reference Ordering, the instruction requests a position that does not exist in the visible sequence, whereas Referential Disambiguation omits the candidates needed to resolve the reference. Any robot motion is counted as a failure in these trials, even if the robot does not contact an object. Because the reason for withholding action differs among tasks, no-intervention results are reported separately by task rather than pooled into a single reasoning score.
+
+Relational Placement includes 20 additional movement-required controls containing the same object types but an initially unsatisfied relation. These controls distinguish recognition of an already satisfied goal from a general tendency to remain still. Size Recognition does not include a no-intervention block. Moving an extremal object into the bowl changes whether it belongs to the comparison set, so a correct no-action response would depend on an additional convention about candidate-set membership rather than on size reasoning alone. Excluding these 20 trials yields the 130-trial Size Recognition suite.
+
+\subsection{Scene Construction and Rollout Protocol}
+
+Whenever possible, trials are organized into counterfactual scene families. Within a family, object identities and nominal positions remain fixed while the instruction changes. Relational Placement uses four-instruction families that reverse both the target--reference order and the requested direction. Referential Disambiguation exchanges candidate distances or positions. Counting applies different target counts to the same starting configuration, reversing whether an object must be added or removed. Cross-task-object families pair scenes in which the cross-task object is and is not the correct target. Size Recognition uses nominally matched smallest/largest contrasts because the held-out size--identity compositions cannot be completely counterbalanced using the available object ordering.
+
+The same episode-level scene manifest is reused across models: for example, rollout 5 for one model uses the same nominal object identities and arrangement as rollout 5 for every other model evaluated on that task. All data collection and evaluation take place under the same lighting in a windowless room, and the middle camera used to match resets remains stationary. Before each rollout, the experimenter compares the live middle-camera view with the corresponding original evaluation scene and manually restores the specified arrangement. Small pose differences remain because resets are performed by hand; scenes should therefore be understood as nominally matched rather than pixel-identical.
+
+Each rollout lasts at most 60 seconds and receives a binary task-success label based on whether the commanded physical outcome is achieved. No human intervention, correction, or object repositioning occurs during a rollout. The evaluator also records qualitative observations and a secondary judgment of whether the behavior appears consistent with the intended reasoning process, but this subjective annotation is not used as the primary benchmark score. For no-intervention trials, success additionally requires the robot to remain stationary for the rollout duration.

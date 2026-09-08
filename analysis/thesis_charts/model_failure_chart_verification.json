@@ -1,0 +1,55 @@
+{
+  "source": "/Users/justintiensmith/Documents/lerobot/outputs/01a0678e-4e7e-7a31-b018-7fba72ab9fe5/MSc_Thesis_Bar_Charts_Verified_with_CIs.xlsx",
+  "output": "/Users/justintiensmith/Documents/lerobot/outputs/01a0678e-4e7e-7a31-b018-7fba72ab9fe5/MSc_Thesis_Bar_Charts_with_Model_Failure_Profiles.xlsx",
+  "new_sheets": [
+    "Failure by Model - All",
+    "Failure by Model - Data"
+  ],
+  "chart_count": 5,
+  "total_failures": 1365,
+  "model_totals": {
+    "GR00T Frozen LLM": 422,
+    "GR00T Full Fine-Tune": 95,
+    "MolmoAct2": 361,
+    "Pi0.5": 415,
+    "VLA-0": 72
+  },
+  "existing_sheets_unchanged": true,
+  "chart_scale": [
+    0,
+    0.75
+  ],
+  "bar_color": "#4F81BD",
+  "charts": [
+    {
+      "model": "VLA-0",
+      "total": 72,
+      "first_data_row": 6,
+      "last_data_row": 14
+    },
+    {
+      "model": "GR00T Full Fine-Tune",
+      "total": 95,
+      "first_data_row": 16,
+      "last_data_row": 24
+    },
+    {
+      "model": "GR00T Frozen LLM",
+      "total": 422,
+      "first_data_row": 26,
+      "last_data_row": 34
+    },
+    {
+      "model": "Pi0.5",
+      "total": 415,
+      "first_data_row": 36,
+      "last_data_row": 44
+    },
+    {
+      "model": "MolmoAct2",
+      "total": 361,
+      "first_data_row": 46,
+      "last_data_row": 54
+    }
+  ]
+}

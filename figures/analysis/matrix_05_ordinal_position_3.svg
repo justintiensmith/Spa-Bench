@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="980" height="520" preserveAspectRatio="xMinYMin meet" viewBox="0 0 980 520" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="980" height="520"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-520)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="980" height="520" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="295.1095" y="460.86" style="font-family: Helvetica-Bold; font-size: 21px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,921) scale(1,-1)">Ordinal Position — 3-object sequences</text>
+			<rect x="40" y="384" width="165" height="64" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(95%,95%,95%); fill-rule: evenodd;"/>
+			<text x="90.608" y="419.36" style="font-family: Helvetica-Bold; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,838) scale(1,-1)">Concept /</text>
+			<text x="90.608" y="403.12" style="font-family: Helvetica-Bold; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,806) scale(1,-1)">argument</text>
+			<rect x="205.0" y="384" width="183.75" height="64" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(95%,95%,95%); fill-rule: evenodd;"/>
+			<text x="244.5045" y="419.11999999999995" style="font-family: Helvetica-Bold; font-size: 13px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,838) scale(1,-1)">Airplane toy with</text>
+			<text x="265.4475" y="404.03999999999996" style="font-family: Helvetica-Bold; font-size: 13px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,808) scale(1,-1)">propellers</text>
+			<rect x="388.75" y="384" width="183.75" height="64" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(95%,95%,95%); fill-rule: evenodd;"/>
+			<text x="438.362" y="411.58" style="font-family: Helvetica-Bold; font-size: 13px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,823) scale(1,-1)">Blue tape ball</text>
+			<rect x="572.5" y="384" width="183.75" height="64" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(95%,95%,95%); fill-rule: evenodd;"/>
+			<text x="610.1975" y="411.58" style="font-family: Helvetica-Bold; font-size: 13px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,823) scale(1,-1)">Green highlighter</text>
+			<rect x="756.25" y="384" width="183.75" height="64" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(95%,95%,95%); fill-rule: evenodd;"/>
+			<text x="814.169" y="411.58" style="font-family: Helvetica-Bold; font-size: 13px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,823) scale(1,-1)">Yellow pen</text>
+			<rect x="40" y="269.3333333333333" width="165" height="114.66666666666669" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(95%,95%,95%); fill-rule: evenodd;"/>
+			<text x="113.7475" y="321.5666666666666" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,643) scale(1,-1)">L1</text>
+			<rect x="205.0" y="269.3333333333333" width="183.75" height="114.66666666666669" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(72%,86%,66%); fill-rule: evenodd;"/>
+			<text x="266.53" y="321.90666666666664" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,643) scale(1,-1)">Observed</text>
+			<rect x="388.75" y="269.3333333333333" width="183.75" height="114.66666666666669" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(90%,69%,64%); fill-rule: evenodd;"/>
+			<text x="453.395" y="321.90666666666664" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,643) scale(1,-1)">Withheld</text>
+			<rect x="572.5" y="269.3333333333333" width="183.75" height="114.66666666666669" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(72%,86%,66%); fill-rule: evenodd;"/>
+			<text x="634.03" y="321.90666666666664" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,643) scale(1,-1)">Observed</text>
+			<rect x="756.25" y="269.3333333333333" width="183.75" height="114.66666666666669" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(90%,69%,64%); fill-rule: evenodd;"/>
+			<text x="820.895" y="321.90666666666664" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,643) scale(1,-1)">Withheld</text>
+			<rect x="40" y="154.66666666666663" width="165" height="114.66666666666669" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(95%,95%,95%); fill-rule: evenodd;"/>
+			<text x="113.7475" y="206.9" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,413) scale(1,-1)">L2</text>
+			<rect x="205.0" y="154.66666666666663" width="183.75" height="114.66666666666669" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(90%,90%,90%); fill-rule: evenodd;"/>
+			<text x="275.084" y="207.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,414) scale(1,-1)">Absent</text>
+			<rect x="388.75" y="154.66666666666663" width="183.75" height="114.66666666666669" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(90%,90%,90%); fill-rule: evenodd;"/>
+			<text x="458.834" y="207.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,414) scale(1,-1)">Absent</text>
+			<rect x="572.5" y="154.66666666666663" width="183.75" height="114.66666666666669" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(90%,90%,90%); fill-rule: evenodd;"/>
+			<text x="642.584" y="207.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,414) scale(1,-1)">Absent</text>
+			<rect x="756.25" y="154.66666666666663" width="183.75" height="114.66666666666669" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(90%,90%,90%); fill-rule: evenodd;"/>
+			<text x="826.334" y="207.24" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,414) scale(1,-1)">Absent</text>
+			<rect x="40" y="39.99999999999996" width="165" height="114.66666666666667" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(95%,95%,95%); fill-rule: evenodd;"/>
+			<text x="113.7475" y="92.23333333333332" style="font-family: Helvetica-Bold; font-size: 15px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,184) scale(1,-1)">L3</text>
+			<rect x="205.0" y="39.99999999999996" width="183.75" height="114.66666666666667" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(90%,69%,64%); fill-rule: evenodd;"/>
+			<text x="269.645" y="92.57333333333331" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,185) scale(1,-1)">Withheld</text>
+			<rect x="388.75" y="39.99999999999996" width="183.75" height="114.66666666666667" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(72%,86%,66%); fill-rule: evenodd;"/>
+			<text x="450.28" y="92.57333333333331" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,185) scale(1,-1)">Observed</text>
+			<rect x="572.5" y="39.99999999999996" width="183.75" height="114.66666666666667" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(90%,69%,64%); fill-rule: evenodd;"/>
+			<text x="637.145" y="92.57333333333331" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,185) scale(1,-1)">Withheld</text>
+			<rect x="756.25" y="39.99999999999996" width="183.75" height="114.66666666666667" style="stroke: rgb(17%,17%,17%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(72%,86%,66%); fill-rule: evenodd;"/>
+			<text x="817.78" y="92.57333333333331" style="font-family: Helvetica; font-size: 14px;fill: rgb(12%,16%,20%); stroke:none;" transform="translate(0,185) scale(1,-1)">Observed</text>
+		</g>
+	</g>
+</svg>
