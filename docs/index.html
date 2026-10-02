@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Spa-Bench is a real-robot benchmark for evaluating spatial grounding in vision-language-action models.">
+  <title>Spa-Bench — Real-Robot Spatial Grounding Benchmark</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffffff'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%232563eb' stroke-width='5'/%3E%3Cpath d='M32 9v46M9 32h46' stroke='%232563eb' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23111827'/%3E%3C/svg%3E">
+  <style>
+    :root { --ink: #111827; --muted: #5f6877; --blue: #2563eb; --line: #e5e7eb; --soft: #f7f8fa; --max: 1040px; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: #fff; color: var(--ink); font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 16px; line-height: 1.65; }
+    img, video { display: block; max-width: 100%; }
+    a { color: var(--blue); }
+    .page { width: min(var(--max), calc(100% - 36px)); margin: 0 auto; }
+    .hero { text-align: center; padding: 58px 0 34px; }
+    h1 { max-width: var(--max); margin: 0 auto; font-size: clamp(1.65rem, 3.6vw, 2.65rem); line-height: 1.14; letter-spacing: -.035em; text-wrap: balance; }
+    .title-line { display: block; white-space: nowrap; }
+    .authors { margin: 20px auto 0; color: var(--blue); font-size: 1.04rem; font-weight: 650; }
+    .affiliation { margin: 5px 0 0; color: var(--muted); }
+    .venue { margin: 13px 0 0; font-weight: 750; }
+    .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin-top: 23px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 18px; border-radius: 999px; background: var(--ink); color: #fff; text-decoration: none; font-size: .91rem; font-weight: 700; transition: background .18s ease, transform .18s ease; }
+    .button:hover { background: var(--blue); transform: translateY(-1px); }
+    .lede { max-width: 760px; margin: 28px auto 0; color: #374151; font-size: 1.06rem; text-wrap: balance; }
+    .hero-figure { margin: 34px auto 0; }
+    figure { margin: 0; }
+    .visual { width: 100%; height: auto; margin-inline: auto; background: #fff; }
+    .visual.tasks { max-width: 950px; }
+    .visual.withheld { max-width: 760px; }
+    .visual.matrix { max-width: 650px; }
+    .visual.aggregate { max-width: 900px; }
+    .visual.cross-task { max-width: 930px; }
+    .visual.corrective { max-width: 940px; }
+    section { padding: 58px 0; border-top: 1px solid var(--line); scroll-margin-top: 20px; }
+    h2 { margin: 0 0 20px; font-size: clamp(1.62rem, 2.7vw, 2.15rem); line-height: 1.22; letter-spacing: -.03em; text-align: center; }
+    .prose { max-width: 810px; margin: 0 auto; color: #374151; font-size: 1.01rem; }
+    .prose p { margin: 0; }
+    .prose p + p { margin-top: 16px; }
+    .section-figure { margin-top: 32px; }
+    .section-figure + .prose { margin-top: 32px; }
+    .section-figure + .section-figure { margin-top: 36px; }
+    .video-frame { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #000; }
+    video { width: 100%; aspect-ratio: 16 / 9; background: #000; }
+    .abstract { max-width: 860px; }
+    .abstract p { text-align: justify; }
+    .quick-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 30px; margin-top: 24px; color: var(--muted); font-size: .93rem; }
+    .quick-stats b { color: var(--ink); }
+    .takeaway { max-width: 820px; margin: 34px auto 0; padding: 22px 26px; border-left: 4px solid var(--blue); background: var(--soft); color: #273244; font-size: 1.06rem; }
+    .paper-callout { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 26px 28px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); }
+    .paper-callout h2 { margin: 0 0 4px; text-align: left; font-size: 1.45rem; }
+    .paper-callout p { margin: 0; color: var(--muted); }
+    .paper-callout .button { flex: 0 0 auto; }
+    footer { padding: 32px 0 44px; border-top: 1px solid var(--line); color: var(--muted); text-align: center; font-size: .87rem; }
+    @media (max-width: 680px) {
+      .page { width: min(var(--max), calc(100% - 24px)); }
+      .hero { padding-top: 44px; }
+      h1 { font-size: clamp(1.65rem, 4vw, 1.9rem); }
+      .authors { font-size: .97rem; }
+      section { padding: 44px 0; }
+      .abstract p { text-align: left; }
+      .paper-callout { display: block; padding: 22px; text-align: center; }
+      .paper-callout h2 { text-align: center; }
+      .paper-callout .button { margin-top: 18px; }
+      .quick-stats { display: grid; gap: 6px; }
+      .takeaway { padding: 18px 20px; }
+    }
+    @media (max-width: 560px) { .title-line { display: inline; white-space: normal; } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .button { transition: none; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <h1><span class="title-line">Spa-Bench: A Real-Robot Benchmark for</span><span class="title-line">Spatial Grounding in Vision-Language-Action Models</span></h1>
+      <p class="authors">Justin Tien-Smith* · Matthew Pidden* · Rolandos Potamias†</p>
+      <p class="affiliation">Imperial College London</p>
+      <p class="venue">ICRA submission</p>
+      <nav class="links" aria-label="Project resources">
+        <a class="button" href="spa-bench-paper.pdf">📄 Paper</a>
+        <a class="button" href="#video">▶ Video</a>
+        <a class="button" href="https://huggingface.co/datasets/Spa-Bench/spa-bench-data-information">🤗 Data</a>
+      </nav>
+      <p class="lede">We introduce Spa-Bench, a real-robot benchmark for evaluating spatial grounding in vision-language-action models.</p>
+      <figure class="hero-figure">
+        <img class="visual" src="assets/teaser.png" alt="Overview of the six Spa-Bench tasks, dataset composition, and a matched-scene comparison." width="1998" height="836">
+      </figure>
+    </header>
+
+    <section id="video">
+      <h2>Video</h2>
+      <div class="video-frame">
+        <video controls preload="metadata" playsinline aria-label="Spa-Bench paper overview video">
+          <source src="spa-bench-video.mp4" type="video/mp4">
+          Your browser does not support embedded video. <a href="spa-bench-video.mp4">Download the video</a>.
+        </video>
+      </div>
+    </section>
+
+    <section id="abstract">
+      <h2>Abstract</h2>
+      <div class="prose abstract">
+        <p>Vision-language-action models (VLAs) offer a promising route toward general-purpose robotics by transferring semantic knowledge from large-scale vision-language pretraining into language-conditioned control. However, most VLA evaluations emphasize aggregate manipulation success under changes in objects, instructions, or environments, leaving unclear how reliably these policies ground spatial descriptions in the physical scenes where they act. We therefore ask a sharper question: how reliably can current VLAs translate spatial descriptions into appropriate real-robot behavior? To investigate this, we introduce Spa-Bench, a real-robot benchmark that evaluates spatial grounding across six tabletop tasks covering Object State, Relative Size, Referential Description, Relational Placement, Ordinal Position, and Counting. Our primary evaluation compares in-distribution (ID) and out-of-distribution (OOD) spatial configurations while retaining training support for the relevant objects, concepts, and actions, reducing object and motor unfamiliarity as alternative explanations for failure. Four diagnostic conditions further probe physical execution, sensitivity to wording, object-task associations, and recognition that no action is required. We release 4,092 episodes collected on the SO-101 robot arm: 1,200 human-teleoperated demonstrations and 2,892 real-robot evaluation rollouts from five state-of-the-art VLA policies. Across the three fully evaluated policies, success falls from 67.5–73.3% on ID configurations to 40.7–52.0% on OOD configurations, while matched direct instructions improve success by 28.3–40.0 percentage points. These results show that the evaluated VLAs can often execute the required manipulations but lack robust spatial grounding. Models, datasets, evaluation rollouts, and supporting spreadsheets are available on <a href="https://huggingface.co/datasets/Spa-Bench/spa-bench-data-information">Hugging Face</a>.</p>
+      </div>
+      <div class="quick-stats" aria-label="Dataset statistics">
+        <span><b>1,200</b> demonstrations</span><span><b>2,892</b> evaluation rollouts</span><span><b>5</b> VLA policies</span><span><b>6</b> tasks</span>
+      </div>
+    </section>
+
+    <section id="aggregate-results">
+      <h2>A widening spatial-grounding gap</h2>
+      <div class="prose"><p>All three fully evaluated policies perform best when the target is named directly. Success declines for in-distribution spatial instructions and falls further when familiar spatial concepts and objects appear in withheld combinations.</p></div>
+      <figure class="section-figure"><img class="visual aggregate" src="assets/aggregate-success.png" alt="Aggregate success rates for direct manipulation, in-distribution spatial grounding, and out-of-distribution spatial grounding." loading="lazy" width="1910" height="1179"></figure>
+    </section>
+
+    <section id="matched-scenes">
+      <h2>Same scene, different instruction</h2>
+      <div class="prose">
+        <p>Two rollouts can begin from the same scene and require the same target and motion. In the video, the spatial instruction asks for the largest object, but the policy selects incorrectly and fails; when the green block is named directly, it succeeds. Under a spatial instruction, the policy must first determine which object the description identifies, while a direct instruction names that target outright. The figure below shows the same controlled comparison in another scene.</p>
+        <p>This reflects a broader pattern across 60 matched scene pairs per policy. Success ranges from 81.7–89.2% when the target is named directly, but falls to 41.7–60.8% when the same scenes require spatial grounding. The models can often execute the manipulation, yet struggle to determine what the spatial instruction requires.</p>
+      </div>
+      <figure class="section-figure"><img class="visual" src="assets/matched-results.png" alt="Matched-scene examples and task-level success rates comparing out-of-distribution spatial grounding with direct manipulation instructions." loading="lazy" width="2180" height="1306"></figure>
+    </section>
+
+    <section id="paraphrasing">
+      <h2>The gap persists under paraphrasing</h2>
+      <div class="prose"><p>Rewording the instructions does not eliminate the pattern. Across the matched scenes, direct-manipulation performance remains substantially higher than OOD spatial grounding under both the original and paraphrased instructions, suggesting that the gap is not explained by one particular wording.</p></div>
+      <figure class="section-figure"><img class="visual" src="assets/paraphrasing.png" alt="Paraphrasing diagnostic comparing original and reworded direct-manipulation and out-of-distribution spatial-grounding instructions." loading="lazy" width="2188" height="1045"></figure>
+    </section>
+
+    <section id="tasks">
+      <h2>Six ways to test spatial grounding</h2>
+      <div class="prose"><p>Spa-Bench contains six tasks spanning object attributes, relationships between objects, and the organization of a scene as a whole: Object State, Relative Size, Referential Description, Relational Placement, Ordinal Position, and Counting.</p></div>
+      <figure class="section-figure"><img class="visual tasks" src="assets/six-tasks.png" alt="Representative scenes and instructions for the six Spa-Bench tasks, with each spatial concept emphasized." loading="lazy" width="1995" height="1379"></figure>
+    </section>
+
+    <section id="withheld-cells">
+      <h2>New combinations of familiar ideas</h2>
+      <div class="prose"><p>Every task follows the same principle. If training shows a red ball and a green cube, evaluation may ask about a red cube. Red and cube are both familiar; only their combination is new. Combinations used in spatial training are marked as observed cells, while new combinations are reserved as withheld cells.</p></div>
+      <figure class="section-figure"><img class="visual matrix" src="assets/concept-matrix.png" alt="Simplified concept-argument matrix showing observed and withheld combinations of colors and shapes." loading="lazy" width="1305" height="605"></figure>
+      <div class="prose"><p>In the Object State task, for example, the policy sees <em>upside-down</em> describe the striped cup. It also sees an upside-down white cup moved when a direct instruction names the white cup. What it never receives is a spatial instruction pairing <em>upside-down</em> with <em>white cup</em>. At evaluation, an upright and an upside-down white cup appear together. The policy must use the familiar state to choose the correct cup, then perform the familiar pick-and-place motion. Spa-Bench applies this construction across all six tasks.</p></div>
+      <figure class="section-figure"><img class="visual withheld" src="assets/withheld-example.png" alt="Observed and withheld Object State combinations with representative training examples." loading="lazy" width="1521" height="1272"></figure>
+    </section>
+
+    <section id="no-action">
+      <h2>Knowing when not to act</h2>
+      <div class="prose"><p>Spa-Bench also asks whether a policy recognizes that the correct behavior is to do nothing. Success reaches 80–85% when a Counting goal already holds, but falls to zero in Ordinal Position and Object State, with only 20–24% aggregate success across four tasks.</p></div>
+      <figure class="section-figure"><img class="visual" src="assets/no-movement.png" alt="Success rates when spatial instructions require no movement across four tasks." loading="lazy" width="2242" height="1334"></figure>
+      <div class="prose"><p>Remaining still can also be correct by accident. In counterfactual Relational Placement scenes, success reaches 75–95% when no movement is needed, but only 5–15% when correction is required. The policies often stay still whether the requested relation is already correct or not.</p></div>
+      <figure class="section-figure"><img class="visual corrective" src="assets/corrective-movement.png" alt="Relational Placement success when a goal is already satisfied compared with scenes requiring corrective movement." loading="lazy" width="2023" height="1306"></figure>
+    </section>
+
+    <section id="cross-task">
+      <h2>Beyond learned object–task associations</h2>
+      <div class="prose"><p>We test familiar spatial behaviors using objects normally associated with other tasks. Success falls for every policy, suggesting sensitivity to object–task associations learned during fine-tuning. Yet none of the policies defaults to placing the juggling ball in the bowl during Relational Placement, even though that was its only demonstrated goal during training. This suggests some transfer beyond a memorized object–goal association.</p></div>
+      <figure class="section-figure"><img class="visual cross-task" src="assets/cross-task.png" alt="Cross-task object evaluation showing standard and cross-task spatial grounding success." loading="lazy" width="2077" height="1242"></figure>
+    </section>
+
+    <section id="failures">
+      <h2>Where the policies break down</h2>
+      <div class="prose"><p>The dominant error depends on the task. Counting failures are overwhelmingly no-action errors, Ordinal Position often selects the wrong object, Object State frequently chooses the wrong instance from the correct category, and Relational Placement often produces the wrong spatial outcome. There is no single failure mode that explains performance across Spa-Bench.</p></div>
+      <figure class="section-figure"><img class="visual" src="assets/failure-analysis.png" alt="Primary failure-mode composition for out-of-distribution spatial grounding by task and policy." loading="lazy" width="2255" height="894"></figure>
+      <p class="takeaway"><strong>Overall, Spa-Bench shows that successful manipulation does not necessarily imply spatial understanding.</strong></p>
+    </section>
+
+    <section id="paper">
+      <div class="paper-callout">
+        <div><h2>Paper and data</h2><p>Read the full benchmark design, evaluation protocol, and analysis, or explore the released data.</p></div>
+        <div class="links"><a class="button" href="spa-bench-paper.pdf">Paper PDF</a><a class="button" href="https://huggingface.co/datasets/Spa-Bench/spa-bench-data-information">Dataset</a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="page">* Equal contribution · † Advising author<br>© Spa-Bench authors</div></footer>
+</body>
+</html>
