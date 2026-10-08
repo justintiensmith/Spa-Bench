@@ -108,7 +108,7 @@
     <section id="matched-scenes">
       <h2>Same scene, different instruction</h2>
       <div class="prose">
-        <p>Two rollouts can begin from the same scene and require the same target and motion. In the video, the spatial instruction asks for the largest object, but the policy selects incorrectly and fails; when the green block is named directly, it succeeds. Under a spatial instruction, the policy must first determine which object the description identifies, while a direct instruction names that target outright. The figure below shows the same controlled comparison in another scene.</p>
+        <p>The two rollouts in the figure begin from the same scene and require moving the crushed Coke can into the bowl. When the instruction names the Coke can directly, the policy succeeds. When it instead asks for the crushed soda can <em>closest to the green pen</em>, the policy selects the wrong can and fails. The scene, intended target, and required manipulation are unchanged; only the need to resolve a spatial description differs.</p>
         <p>This reflects a broader pattern across 120 matched scenes per policy. Success ranges from 81.7–89.2% when the target is named directly, but falls to 41.7–60.8% when the same scenes require spatial grounding. The models can often execute the manipulation, yet struggle to determine what the spatial instruction requires.</p>
       </div>
       <figure class="section-figure"><img class="visual withheld" src="assets/matched-scene-example.png" alt="The same scene and intended target lead to a successful direct manipulation rollout and a failed OOD spatial grounding rollout." loading="lazy" width="1498" height="717"></figure>
