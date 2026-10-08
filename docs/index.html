@@ -101,14 +101,18 @@
 
     <section id="aggregate-results">
       <h2>A widening spatial-grounding gap</h2>
-      <div class="prose"><p>All three fully evaluated policies perform best when the target is named directly. Success declines for in-distribution spatial instructions and falls further when familiar spatial concepts and objects appear in withheld combinations.</p></div>
+      <div class="prose">
+        <p>Spatial grounding connects a language description to the objects, attributes, and relationships in a scene so that a robot can choose the correct response. Spa-Bench asks whether successful manipulation is accompanied by this scene-grounded understanding.</p>
+        <p>A direct instruction names the target explicitly. In-distribution (ID) spatial instructions use combinations represented during training; out-of-distribution (OOD) spatial instructions require new combinations of familiar components. All three fully evaluated policies perform best with direct instructions, less well with ID spatial instructions, and worse still with OOD combinations.</p>
+      </div>
       <figure class="section-figure"><img class="visual chart" src="assets/aggregate-success.png" alt="Aggregate success rates for direct manipulation, in-distribution spatial grounding, and out-of-distribution spatial grounding." loading="lazy" width="1910" height="1179"></figure>
     </section>
 
     <section id="matched-scenes">
       <h2>Same scene, different instruction</h2>
       <div class="prose">
-        <p>The two rollouts in the figure begin from the same scene and require moving the crushed Coke can into the bowl. When the instruction names the Coke can directly, the policy succeeds. When it instead asks for the crushed soda can <em>closest to the green pen</em>, the policy selects the wrong can and fails. The scene, intended target, and required manipulation are unchanged; only the need to resolve a spatial description differs.</p>
+        <p>When a robot fails to follow a spatial instruction, the difficulty may lie in interpreting the scene or executing the manipulation. To distinguish these, Spa-Bench repeats the same scene, intended target, and required motion with two instruction types: one identifies the target through a spatial description, while the other names it directly.</p>
+        <p>The figure illustrates this comparison. Both rollouts require moving the crushed Coke can into the bowl. Directly naming the Coke can leads to success; asking for the crushed soda can <em>closest to the green pen</em> leads the policy to select the wrong can and fail.</p>
         <p>This reflects a broader pattern across 120 matched scenes per policy. Success ranges from 81.7–89.2% when the target is named directly, but falls to 41.7–60.8% when the same scenes require spatial grounding. The models can often execute the manipulation, yet struggle to determine what the spatial instruction requires.</p>
       </div>
       <figure class="section-figure"><img class="visual withheld" src="assets/matched-scene-example.png" alt="The same scene and intended target lead to a successful direct manipulation rollout and a failed OOD spatial grounding rollout." loading="lazy" width="1498" height="717"></figure>
@@ -120,7 +124,10 @@
 
     <section id="paraphrasing">
       <h2>The gap persists under paraphrasing</h2>
-      <div class="prose"><p>Rewording the instructions does not eliminate the pattern. On a 60-scene subset per policy, direct-manipulation performance remains substantially higher than OOD spatial grounding under both the original and paraphrased instructions. Paraphrasing reduces spatial success for all three policies, while its effect on direct instructions varies by policy.</p></div>
+      <div class="prose">
+        <p>A policy might struggle with a particular wording rather than the underlying spatial requirement. The paraphrasing diagnostic tests this by restating both spatial and direct instructions while preserving their meaning, the scene, and the intended action.</p>
+        <p>On a 60-scene subset per policy, direct-manipulation performance remains substantially higher than OOD spatial grounding under both original and paraphrased instructions. Paraphrasing reduces spatial success for all three policies, while its effect on direct instructions varies by policy. The gap is therefore not explained by one particular phrasing.</p>
+      </div>
       <figure class="section-figure"><img class="visual withheld" src="assets/paraphrasing-arxiv.png" alt="Original and paraphrased instructions produce failed spatial rollouts and successful direct-manipulation rollouts on the same scene." loading="lazy" width="2000" height="1689"></figure>
       <figure class="section-figure">
         <img class="visual chart" src="assets/paraphrase-results-arxiv.png" alt="Success under original and paraphrased direct-manipulation and OOD spatial instructions, with Wilson 95% confidence intervals." loading="lazy" width="2000" height="658">
@@ -130,42 +137,60 @@
 
     <section id="tasks">
       <h2>Six ways to test spatial grounding</h2>
-      <div class="prose"><p>Spa-Bench contains six tasks spanning object attributes, relationships between objects, and the organization of a scene as a whole: Object State, Relative Size, Referential Description, Relational Placement, Ordinal Position, and Counting.</p></div>
-      <figure class="section-figure"><img class="visual tasks" src="assets/six-tasks.png" alt="Representative scenes and instructions for the six Spa-Bench tasks, with each spatial concept emphasized." loading="lazy" width="1995" height="1379"></figure>
+      <div class="prose"><p>Spatial instructions can change which object to select, where to place it, or whether to act at all. Spa-Bench covers these decisions through six tasks spanning object attributes, relationships between objects, and scene-level order and quantities. The robot and broad pick-and-place behavior stay fixed, while the information needed to choose the correct response changes.</p></div>
+      <figure class="section-figure"><img class="visual tasks" src="assets/six-tasks.png" alt="Representative scenes and instructions for Object State, Relative Size, Referential Description, Relational Placement, Ordinal Position, and Counting, with each spatial concept emphasized." loading="lazy" width="1995" height="1379"></figure>
     </section>
 
     <section id="withheld-cells">
       <h2>New combinations of familiar ideas</h2>
-      <div class="prose"><p>In the toy example, spatial training pairs yellow with ball and blue with cube. Evaluation asks for a yellow cube: familiar color, familiar object, new pairing. Direct instructions provide manipulation support for the withheld combination. Observed cells appear in spatial training; withheld cells are reserved for evaluation.</p></div>
+      <div class="prose">
+        <p>Spa-Bench tests generalization by withholding combinations, not their ingredients. Spatial concepts, objects, and required motions receive training support, but selected combinations are absent from spatially grounded training instructions. We organize these combinations into matrices: observed cells appear in spatial training, while withheld cells are reserved for evaluation.</p>
+        <p>In the toy example, spatial training pairs yellow with ball and blue with cube. Direct instructions also provide manipulation support for the yellow cube. Evaluation then asks for the yellow cube through a color description: familiar color, familiar object, familiar motion, but a new spatial pairing.</p>
+      </div>
       <figure class="section-figure"><img class="visual withheld" src="assets/withheld-color-shape.png" alt="Blue and yellow color-shape matrix, examples of spatial-language and direct-manipulation support, and a withheld yellow-cube composition test." loading="lazy" width="1900" height="2585"></figure>
-      <div class="prose"><p>Object State follows the same principle. Spatial instructions pair <em>upside-down</em> with the striped cup, while direct instructions provide manipulation support for the white cup. Evaluation combines that familiar state and object: the policy must select the upside-down white cup. We use this construction across all six tasks.</p></div>
+      <div class="prose"><p>For Object State, a familiar state must identify the correct instance of a familiar object. The policy sees <em>upside-down</em> describe the striped cup and sees the white cup moved under direct instructions. Evaluation then asks it to select an upside-down white cup from an upright and an upside-down instance. The new element is the spatial state–object pairing, not the object or pick-and-place motion. We apply this construction across all six tasks.</p></div>
       <figure class="section-figure"><img class="visual withheld" src="assets/withheld-object-state.png" alt="Object State observed and withheld combinations, spatial support for the upside-down striped cup, direct-manipulation support for the white cup, and the withheld upside-down white-cup evaluation scene." loading="lazy" width="1980" height="2585"></figure>
     </section>
 
     <section id="no-action">
       <h2>Knowing when not to act</h2>
-      <div class="prose"><p>Spa-Bench also asks whether a policy recognizes that the correct behavior is to do nothing. Success reaches 80–85% when a Counting goal already holds, but falls to zero in Ordinal Position and Object State, with only 20–24% aggregate success across four tasks.</p></div>
+      <div class="prose">
+        <p>A spatial instruction does not always require movement: its goal may already be satisfied, or the scene may contain no valid target. The no-intervention diagnostic tests whether policies recognize these conditions and correctly withhold action.</p>
+        <p>Success reaches 80–85% when a Counting goal already holds, but falls to zero in Ordinal Position and Object State, with only 20–24% aggregate success across four tasks. The policies can remain still, but do not reliably decide when stillness is appropriate.</p>
+      </div>
       <figure class="section-figure"><img class="visual chart" src="assets/no-intervention-arxiv.png" alt="No-intervention examples and success rates for Counting, Ordinal Position, Object State, and Referential Description, with Wilson 95% confidence intervals." loading="lazy" width="2000" height="959"></figure>
-      <div class="prose"><p>Remaining still can also be correct by accident. In counterfactual Relational Placement scenes, success reaches 75–95% when no movement is needed, but only 5–15% when correction is required. The policies often stay still whether the requested relation is already correct or not.</p></div>
+      <div class="prose">
+        <p>Remaining still can be correct by accident. To distinguish recognition of a satisfied goal from a general tendency not to move, we pair Relational Placement scenes where the requested relation already holds with scenes requiring correction. The same instruction should produce stillness in one scene and movement in the other.</p>
+        <p>Success reaches 75–95% when no movement is needed, but only 5–15% when correction is required. The policies often stay still whether the requested relation is already correct or not.</p>
+      </div>
       <figure class="section-figure"><img class="visual chart" src="assets/corrective-movement-arxiv.png" alt="Matched Relational Placement scenes when the goal already holds and when corrective movement is required, with success rates and Wilson 95% confidence intervals." loading="lazy" width="2000" height="1653"></figure>
     </section>
 
     <section id="cross-task">
       <h2>Beyond learned object–task associations</h2>
-      <div class="prose"><p>We test familiar spatial behaviors using objects normally associated with other tasks. Success falls for every policy, suggesting sensitivity to object–task associations learned during fine-tuning. Yet none of the policies defaults to placing the juggling ball in the bowl during Relational Placement, even though that was its only demonstrated goal during training. This suggests some transfer beyond a memorized object–goal association.</p></div>
+      <div class="prose">
+        <p>A policy may associate an object with the task or destination it saw during training. The cross-task-object diagnostic asks whether a familiar spatial behavior still works when an object normally used in another task is introduced.</p>
+        <p>Success falls for all three fully evaluated policies, suggesting sensitivity to learned object–task associations. Yet none defaults to placing the juggling ball in the bowl during Relational Placement, even though that was its only demonstrated goal during training. This suggests some transfer beyond a memorized object–goal association, without reliable success at the requested relation.</p>
+      </div>
       <figure class="section-figure"><img class="visual chart" src="assets/cross-task.png" alt="Cross-task object evaluation showing standard and cross-task spatial grounding success." loading="lazy" width="2077" height="1242"></figure>
     </section>
 
     <section id="failures">
       <h2>Where the policies break down</h2>
-      <div class="prose"><p>The dominant error depends on the task. Counting failures are overwhelmingly no-action errors, Ordinal Position often selects the wrong object, Object State frequently chooses the wrong instance from the correct category, and Relational Placement often produces the wrong spatial outcome. There is no single failure mode that explains performance across Spa-Bench.</p></div>
+      <div class="prose">
+        <p>A success rate tells us whether a rollout completed the task, but not why it failed. We therefore assign each unsuccessful OOD rollout a primary failure mode. Each bar below shows the mix of errors among failed trials for a task and policy, rather than an overall failure rate.</p>
+        <p>The dominant error depends on the task. Counting failures are overwhelmingly no-action errors, Ordinal Position often selects the wrong object, Object State frequently chooses the wrong instance from the correct category, and Relational Placement often produces the wrong spatial outcome. There is no single failure mode that explains performance across Spa-Bench.</p>
+      </div>
       <figure class="section-figure"><img class="visual chart" src="assets/failure-analysis-arxiv.png" alt="Updated OOD failure-mode composition by task and policy, separating wrong-object and same-category wrong-instance failures." loading="lazy" width="2000" height="764"></figure>
       <p class="takeaway"><strong>Overall, Spa-Bench shows that successful manipulation does not necessarily imply spatial understanding.</strong></p>
     </section>
 
     <section id="dataset">
       <h2>Dataset and evaluation rollouts</h2>
-      <div class="prose"><p>We release 4,092 real-robot episodes: 1,200 demonstrations across the six tasks and 2,892 evaluation rollouts from five policies. Three policies complete the full 900-rollout protocol; two contribute partial ID baselines.</p></div>
+      <div class="prose">
+        <p>The release includes both training demonstrations and autonomous evaluation rollouts. Demonstrations provide examples of the task behaviors; rollouts record how fine-tuned policies respond to the benchmark scenes and diagnostic conditions.</p>
+        <p>We release 4,092 real-robot episodes: 1,200 demonstrations across the six tasks and 2,892 evaluation rollouts from five policies. Three policies complete the full 900-rollout protocol; two contribute partial ID baselines.</p>
+      </div>
       <figure class="section-figure"><img class="visual sankey" src="assets/dataset-breakdown.png" alt="Dataset Sankey diagram showing 1,200 task demonstrations and 2,892 evaluation rollouts, for a total of 4,092 episodes." loading="lazy" width="1472" height="644"></figure>
     </section>
 
