@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Spa-Bench is a real-robot benchmark for evaluating spatial grounding in vision-language-action models.">
   <title>Spa-Bench — Real-Robot Spatial Grounding Benchmark</title>
-  <link rel="icon" type="image/png" href="assets/spa-capybara.png">
-  <link rel="apple-touch-icon" href="assets/spa-capybara.png">
+  <link rel="icon" type="image/png" href="assets/spa-capybara-transparent.png">
+  <link rel="apple-touch-icon" href="assets/spa-capybara-transparent.png">
   <style>
     :root { --ink: #111827; --muted: #5f6877; --blue: #2563eb; --line: #e5e7eb; --soft: #f7f8fa; --max: 1040px; }
     * { box-sizing: border-box; }
@@ -29,10 +29,7 @@
     .visual { width: 100%; height: auto; margin-inline: auto; background: #fff; }
     .visual.tasks { max-width: 950px; }
     .visual.withheld { max-width: 760px; }
-    .visual.matrix { max-width: 650px; }
-    .visual.aggregate { max-width: 900px; }
-    .visual.cross-task { max-width: 930px; }
-    .visual.corrective { max-width: 940px; }
+    .visual.chart { max-width: 900px; }
     .visual.sankey { max-width: 760px; }
     section { padding: 58px 0; border-top: 1px solid var(--line); scroll-margin-top: 20px; }
     h2 { margin: 0 0 20px; font-size: clamp(1.62rem, 2.7vw, 2.15rem); line-height: 1.22; letter-spacing: -.03em; text-align: center; }
@@ -42,7 +39,6 @@
     .section-figure { margin-top: 32px; }
     .section-figure + .prose { margin-top: 32px; }
     .section-figure + .section-figure { margin-top: 36px; }
-    .figure-pair { display: grid; grid-template-columns: .95fr 1.35fr; align-items: center; gap: 28px; }
     figcaption { max-width: 900px; margin: 12px auto 0; color: var(--muted); font-size: .88rem; text-align: center; }
     .video-frame { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #000; }
     .hero .video-frame { margin-top: 32px; scroll-margin-top: 20px; }
@@ -68,7 +64,6 @@
       .paper-callout h2 { text-align: center; }
       .paper-callout .button { margin-top: 18px; }
       .quick-stats { display: grid; gap: 6px; }
-      .figure-pair { grid-template-columns: 1fr; gap: 24px; }
       .takeaway { padding: 18px 20px; }
     }
     @media (max-width: 560px) { .title-line { display: inline; white-space: normal; } }
@@ -78,7 +73,7 @@
 <body>
   <main class="page">
     <header class="hero">
-      <h1><span class="title-line"><span class="title-word"><img class="title-logo" src="assets/spa-capybara.png" alt="" width="274" height="272">Spa-Bench:</span> A Real-Robot Benchmark for</span> <span class="title-line">Spatial Grounding in Vision-Language-Action Models</span></h1>
+      <h1><span class="title-line"><span class="title-word"><img class="title-logo" src="assets/spa-capybara-transparent.png" alt="" width="1281" height="1228">Spa-Bench:</span> A Real-Robot Benchmark for</span> <span class="title-line">Spatial Grounding in Vision-Language-Action Models</span></h1>
       <p class="authors">Justin Tien-Smith* · Matthew Pidden* · Rolandos Potamias†</p>
       <p class="affiliation">Imperial College London</p>
       <nav class="links" aria-label="Project resources">
@@ -107,7 +102,7 @@
     <section id="aggregate-results">
       <h2>A widening spatial-grounding gap</h2>
       <div class="prose"><p>All three fully evaluated policies perform best when the target is named directly. Success declines for in-distribution spatial instructions and falls further when familiar spatial concepts and objects appear in withheld combinations.</p></div>
-      <figure class="section-figure"><img class="visual aggregate" src="assets/aggregate-success.png" alt="Aggregate success rates for direct manipulation, in-distribution spatial grounding, and out-of-distribution spatial grounding." loading="lazy" width="1910" height="1179"></figure>
+      <figure class="section-figure"><img class="visual chart" src="assets/aggregate-success.png" alt="Aggregate success rates for direct manipulation, in-distribution spatial grounding, and out-of-distribution spatial grounding." loading="lazy" width="1910" height="1179"></figure>
     </section>
 
     <section id="matched-scenes">
@@ -118,7 +113,7 @@
       </div>
       <figure class="section-figure"><img class="visual withheld" src="assets/matched-scene-example.png" alt="The same scene and intended target lead to a successful direct manipulation rollout and a failed OOD spatial grounding rollout." loading="lazy" width="1498" height="717"></figure>
       <figure class="section-figure">
-        <img class="visual" src="assets/task-success-arxiv.png" alt="Task-level OOD spatial-grounding and direct-manipulation success for three policies, including Wilson 95% confidence intervals." loading="lazy" width="2000" height="301">
+        <img class="visual chart" src="assets/task-success-arxiv.png" alt="Task-level OOD spatial-grounding and direct-manipulation success for three policies, including Wilson 95% confidence intervals." loading="lazy" width="2000" height="301">
         <figcaption>Dark bars: OOD spatial instructions (50 trials per task). Light bars: direct manipulation (20 trials per task). Whiskers: Wilson 95% confidence intervals. The matched comparison above uses the 20 shared scenes per task.</figcaption>
       </figure>
     </section>
@@ -126,11 +121,9 @@
     <section id="paraphrasing">
       <h2>The gap persists under paraphrasing</h2>
       <div class="prose"><p>Rewording the instructions does not eliminate the pattern. On a 60-scene subset per policy, direct-manipulation performance remains substantially higher than OOD spatial grounding under both the original and paraphrased instructions. Paraphrasing reduces spatial success for all three policies, while its effect on direct instructions varies by policy.</p></div>
+      <figure class="section-figure"><img class="visual withheld" src="assets/paraphrasing-arxiv.png" alt="Original and paraphrased instructions produce failed spatial rollouts and successful direct-manipulation rollouts on the same scene." loading="lazy" width="2000" height="1689"></figure>
       <figure class="section-figure">
-        <div class="figure-pair">
-          <img class="visual" src="assets/paraphrase-results-arxiv.png" alt="Success under original and paraphrased direct-manipulation and OOD spatial instructions, with Wilson 95% confidence intervals." loading="lazy" width="2000" height="658">
-          <img class="visual" src="assets/paraphrasing-arxiv.png" alt="Original and paraphrased instructions produce failed spatial rollouts and successful direct-manipulation rollouts on the same scene." loading="lazy" width="2000" height="1689">
-        </div>
+        <img class="visual chart" src="assets/paraphrase-results-arxiv.png" alt="Success under original and paraphrased direct-manipulation and OOD spatial instructions, with Wilson 95% confidence intervals." loading="lazy" width="2000" height="658">
         <figcaption>Dark bars: original instructions. Light bars: paraphrases. Each condition uses the same 60 scenes per policy; whiskers show Wilson 95% confidence intervals.</figcaption>
       </figure>
     </section>
@@ -143,30 +136,30 @@
 
     <section id="withheld-cells">
       <h2>New combinations of familiar ideas</h2>
-      <div class="prose"><p>Every task follows the same principle. If training shows a red ball and a green cube, evaluation may ask about a red cube. Red and cube are both familiar; only their combination is new. Combinations used in spatial training are marked as observed cells, while new combinations are reserved as withheld cells.</p></div>
-      <figure class="section-figure"><img class="visual matrix" src="assets/concept-matrix.png" alt="Simplified concept-argument matrix showing observed and withheld combinations of colors and shapes." loading="lazy" width="1305" height="605"></figure>
-      <div class="prose"><p>In the Object State task, for example, the policy sees <em>upside-down</em> describe the striped cup. It also sees an upside-down white cup moved when a direct instruction names the white cup. What it never receives is a spatial instruction pairing <em>upside-down</em> with <em>white cup</em>. At evaluation, an upright and an upside-down white cup appear together. The policy must use the familiar state to choose the correct cup, then perform the familiar pick-and-place motion. Spa-Bench applies this construction across all six tasks.</p></div>
-      <figure class="section-figure"><img class="visual withheld" src="assets/withheld-example-arxiv.png" alt="Updated Object State matrix with spatial language support for the upside-down striped cup and direct-manipulation support for the white cup." loading="lazy" width="2000" height="1697"></figure>
+      <div class="prose"><p>In the toy example, spatial training pairs yellow with ball and blue with cube. Evaluation asks for a yellow cube: familiar color, familiar object, new pairing. Direct instructions provide manipulation support for the withheld combination. Observed cells appear in spatial training; withheld cells are reserved for evaluation.</p></div>
+      <figure class="section-figure"><img class="visual withheld" src="assets/withheld-color-shape.png" alt="Blue and yellow color-shape matrix, examples of spatial-language and direct-manipulation support, and a withheld yellow-cube composition test." loading="lazy" width="1900" height="2585"></figure>
+      <div class="prose"><p>Object State follows the same principle. Spatial instructions pair <em>upside-down</em> with the striped cup, while direct instructions provide manipulation support for the white cup. Evaluation combines that familiar state and object: the policy must select the upside-down white cup. We use this construction across all six tasks.</p></div>
+      <figure class="section-figure"><img class="visual withheld" src="assets/withheld-object-state.png" alt="Object State observed and withheld combinations, spatial support for the upside-down striped cup, direct-manipulation support for the white cup, and the withheld upside-down white-cup evaluation scene." loading="lazy" width="1980" height="2585"></figure>
     </section>
 
     <section id="no-action">
       <h2>Knowing when not to act</h2>
       <div class="prose"><p>Spa-Bench also asks whether a policy recognizes that the correct behavior is to do nothing. Success reaches 80–85% when a Counting goal already holds, but falls to zero in Ordinal Position and Object State, with only 20–24% aggregate success across four tasks.</p></div>
-      <figure class="section-figure"><img class="visual" src="assets/no-intervention-arxiv.png" alt="No-intervention examples and success rates for Counting, Ordinal Position, Object State, and Referential Description, with Wilson 95% confidence intervals." loading="lazy" width="2000" height="959"></figure>
+      <figure class="section-figure"><img class="visual chart" src="assets/no-intervention-arxiv.png" alt="No-intervention examples and success rates for Counting, Ordinal Position, Object State, and Referential Description, with Wilson 95% confidence intervals." loading="lazy" width="2000" height="959"></figure>
       <div class="prose"><p>Remaining still can also be correct by accident. In counterfactual Relational Placement scenes, success reaches 75–95% when no movement is needed, but only 5–15% when correction is required. The policies often stay still whether the requested relation is already correct or not.</p></div>
-      <figure class="section-figure"><img class="visual corrective" src="assets/corrective-movement-arxiv.png" alt="Matched Relational Placement scenes when the goal already holds and when corrective movement is required, with success rates and Wilson 95% confidence intervals." loading="lazy" width="2000" height="1653"></figure>
+      <figure class="section-figure"><img class="visual chart" src="assets/corrective-movement-arxiv.png" alt="Matched Relational Placement scenes when the goal already holds and when corrective movement is required, with success rates and Wilson 95% confidence intervals." loading="lazy" width="2000" height="1653"></figure>
     </section>
 
     <section id="cross-task">
       <h2>Beyond learned object–task associations</h2>
       <div class="prose"><p>We test familiar spatial behaviors using objects normally associated with other tasks. Success falls for every policy, suggesting sensitivity to object–task associations learned during fine-tuning. Yet none of the policies defaults to placing the juggling ball in the bowl during Relational Placement, even though that was its only demonstrated goal during training. This suggests some transfer beyond a memorized object–goal association.</p></div>
-      <figure class="section-figure"><img class="visual cross-task" src="assets/cross-task.png" alt="Cross-task object evaluation showing standard and cross-task spatial grounding success." loading="lazy" width="2077" height="1242"></figure>
+      <figure class="section-figure"><img class="visual chart" src="assets/cross-task.png" alt="Cross-task object evaluation showing standard and cross-task spatial grounding success." loading="lazy" width="2077" height="1242"></figure>
     </section>
 
     <section id="failures">
       <h2>Where the policies break down</h2>
       <div class="prose"><p>The dominant error depends on the task. Counting failures are overwhelmingly no-action errors, Ordinal Position often selects the wrong object, Object State frequently chooses the wrong instance from the correct category, and Relational Placement often produces the wrong spatial outcome. There is no single failure mode that explains performance across Spa-Bench.</p></div>
-      <figure class="section-figure"><img class="visual" src="assets/failure-analysis-arxiv.png" alt="Updated OOD failure-mode composition by task and policy, separating wrong-object and same-category wrong-instance failures." loading="lazy" width="2000" height="764"></figure>
+      <figure class="section-figure"><img class="visual chart" src="assets/failure-analysis-arxiv.png" alt="Updated OOD failure-mode composition by task and policy, separating wrong-object and same-category wrong-instance failures." loading="lazy" width="2000" height="764"></figure>
       <p class="takeaway"><strong>Overall, Spa-Bench shows that successful manipulation does not necessarily imply spatial understanding.</strong></p>
     </section>
 
