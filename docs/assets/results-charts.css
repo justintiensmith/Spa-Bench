@@ -1,9 +1,10 @@
-.results-chart { position: relative; max-width: 900px; margin-inline: auto; }
+.results-chart { position: relative; max-width: 1040px; margin-inline: auto; }
 .results-chart[hidden], .chart-tooltip[hidden], .chart-fallback[hidden] { display: none; }
 .chart-scroll { overflow-x: auto; overscroll-behavior-x: contain; padding: 4px 0 8px; scrollbar-width: thin; }
 .chart-svg { display: block; width: 100%; height: auto; overflow: visible; font-family: inherit; }
 .chart-axis { fill: #5f6877; font-size: 13px; }
 .chart-label { fill: #273244; font-size: 14px; font-weight: 550; }
+.chart-policy-label { fill: #5f6877; font-size: 12px; font-weight: 650; }
 .chart-grid { stroke: #e5e7eb; stroke-width: 1; }
 .chart-baseline { stroke: #9ca3af; stroke-width: 1; }
 .chart-whisker { stroke: #273244; stroke-width: 1.4; pointer-events: none; }
@@ -19,6 +20,8 @@
 .chart-swatch { display: inline-block; width: 13px; height: 13px; border-radius: 2px; flex: 0 0 auto; }
 .chart-variants { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; margin-top: 12px; color: #5f6877; font-size: .82rem; }
 .chart-variants span { display: inline-flex; align-items: center; gap: 7px; }
+.chart-modes { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; margin: 14px auto 0; max-width: 950px; color: #5f6877; font-size: .78rem; }
+.chart-modes span { display: inline-flex; align-items: center; gap: 6px; }
 .chart-variant-swatch { width: 13px; height: 13px; background: #667085; border-radius: 2px; }
 .chart-variant-swatch.light { background: #d8dee7; border: 1px solid #b4bdca; }
 .chart-hint { margin: 12px 0 0; color: #687383; font-size: .79rem; text-align: center; }

@@ -54,5 +54,45 @@ for policy in policies:
         total = data["charts"]["aggregate"]["groups"][aggregate_index]["series"][policy]["result"]
         assert [sum(value[index] for value in task_values) for index in [0, 1]] == total[:2]
 
-assert checked == 57
-print(f"Verified all {checked} bars against paper Tables IV, VI, VII, and VIII, including counts, rates, and both CI bounds.")
+diagnostics = table_values(16, "IX", "X")
+assert len(diagnostics) == 27
+for chart, paper_rows in [("no-intervention", [2, 3, 4, 5, 6]), ("relational-action", [7, 8]), ("cross-task", [0, 1])]:
+    for group, paper_row in zip(data["charts"][chart]["groups"], paper_rows, strict=True):
+        for policy_index, policy in enumerate(policies):
+            assert group["series"][policy]["result"] == diagnostics[paper_row * 3 + policy_index], (chart, group["label"], policy)
+            checked += 1
+
+assert checked == 84
+
+# Figure 11 embeds six lossless chart images. Check the failure-mode counts
+# against their original segment colors, not a rendered/screenshot estimate.
+# Every failure occupies an equal-width slice of the normalized bar; checking
+# two interior points in each slice detects a one-count boundary discrepancy.
+failure_chart = data["charts"]["failures"]
+images = {image.name: image.image.convert("RGB") for image in reader.pages[8].images}
+colors = [tuple(bytes.fromhex(mode["color"][1:])) for mode in failure_chart["modes"]]
+segments = 0
+for group_index, group in enumerate(failure_chart["groups"]):
+    image = images[group["paperImage"]]
+    for policy_index, policy in enumerate(policies):
+        series = group["series"][policy]
+        failures, counts = series["failures"], series["counts"]
+        ood = data["charts"]["tasks"]["groups"][group_index]["series"][policy]["ood"]
+        assert failures == ood[1] - ood[0]
+        assert len(counts) == len(colors) and all(isinstance(count, int) and count >= 0 for count in counts)
+        assert sum(counts) == failures
+        expected_slices = [mode_index for mode_index, count in enumerate(counts) for _ in range(count)]
+        for slice_index, expected_mode in enumerate(expected_slices):
+            for offset in [0.35, 0.65]:
+                x = round(87.5 + (slice_index + offset) / failures * 376)
+                rgb = image.getpixel((x, [72, 135, 199][policy_index]))
+                distances = [sum((a-b)**2 for a, b in zip(rgb, color, strict=True)) for color in colors]
+                observed_mode = min(range(len(colors)), key=distances.__getitem__)
+                assert observed_mode == expected_mode, ("Figure 11", group["label"], policy, slice_index, expected_mode, observed_mode)
+        segments += sum(count > 0 for count in counts)
+
+# Reconcile the explicitly stated counts in Section V-F (PDF page 8).
+assert sum(group["series"][policy]["counts"][2] for group in failure_chart["groups"][:1] for policy in policies) == 148
+assert sum(failure_chart["groups"][1]["series"][policy]["counts"][0] for policy in policies) == 74
+assert sum(failure_chart["groups"][3]["series"][policy]["counts"][1] for policy in policies) == 75
+print(f"Verified {checked} success bars against Tables IV, VI–IX (counts, rates, and CI bounds), and all {segments} nonzero failure segments against Figure 11.")

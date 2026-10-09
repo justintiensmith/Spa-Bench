@@ -31,7 +31,7 @@
     .visual { width: 100%; height: auto; margin-inline: auto; background: #fff; }
     .visual.tasks { max-width: 950px; }
     .visual.withheld { max-width: 760px; }
-    .visual.chart { max-width: 900px; }
+    .visual.chart { max-width: 1040px; }
     .visual.sankey { max-width: 760px; }
     section { padding: 58px 0; border-top: 1px solid var(--line); scroll-margin-top: 20px; }
     h2 { margin: 0 0 20px; font-size: clamp(1.62rem, 2.7vw, 2.15rem); line-height: 1.22; letter-spacing: -.03em; text-align: center; }
@@ -39,6 +39,7 @@
     .prose p { margin: 0; }
     .prose p + p { margin-top: 16px; }
     .section-figure { margin-top: 32px; }
+    .section-figure[hidden] { display: none; }
     .section-figure + .prose { margin-top: 32px; }
     .section-figure + .section-figure { margin-top: 36px; }
     figcaption { max-width: 900px; margin: 12px auto 0; color: var(--muted); font-size: .88rem; text-align: center; }
@@ -162,12 +163,20 @@
         <p>A spatial instruction does not always require movement: its goal may already be satisfied, or the scene may contain no valid target. The no-intervention diagnostic tests whether policies recognize these conditions and correctly withhold action.</p>
         <p>Success reaches 80–85% when a Counting goal already holds, but falls to zero in Ordinal Position and Object State, with only 20–24% aggregate success across four tasks. The policies can remain still, but do not reliably decide when stillness is appropriate.</p>
       </div>
-      <figure class="section-figure"><img class="visual chart" src="assets/no-intervention-arxiv.png" alt="No-intervention examples and success rates for Counting, Ordinal Position, Object State, and Referential Description, with Wilson 95% confidence intervals." loading="lazy" width="2000" height="959"></figure>
+      <figure class="section-figure" data-chart-example hidden><img class="visual" src="assets/no-intervention-examples.png" alt="Examples where no intervention is appropriate: a Counting goal already holds, an ordinal is invalid, Object State has no valid target, and Referential Description has no candidate." loading="lazy" width="2400" height="680"></figure>
+      <figure class="section-figure" data-results-chart="no-intervention">
+        <img class="visual chart chart-fallback" src="assets/no-intervention-arxiv.png" alt="No-intervention examples and success rates for Counting, Ordinal Position, Object State, and Referential Description, with Wilson 95% confidence intervals." loading="lazy" width="2000" height="959">
+        <figcaption>20 trials per task and policy; 80 trials in the four-task aggregate. Success means correctly withholding action. Whiskers: Wilson 95% confidence intervals. <a href="spa-bench-paper.pdf#page=16">Paper Table IX</a>.</figcaption>
+      </figure>
       <div class="prose">
         <p>Remaining still can be correct by accident. To distinguish recognition of a satisfied goal from a general tendency not to move, we pair Relational Placement scenes where the requested relation already holds with scenes requiring correction. The same instruction should produce stillness in one scene and movement in the other.</p>
         <p>Success reaches 75–95% when no movement is needed, but only 5–15% when correction is required. The policies often stay still whether the requested relation is already correct or not.</p>
       </div>
-      <figure class="section-figure"><img class="visual chart" src="assets/corrective-movement-arxiv.png" alt="Matched Relational Placement scenes when the goal already holds and when corrective movement is required, with success rates and Wilson 95% confidence intervals." loading="lazy" width="2000" height="1653"></figure>
+      <figure class="section-figure" data-chart-example hidden><img class="visual withheld" src="assets/relational-action-examples.png" alt="The same blue-block-behind-red-block instruction in two scenes: the relation already holds on the left and corrective movement is required on the right." loading="lazy" width="2400" height="1111"></figure>
+      <figure class="section-figure" data-results-chart="relational-action">
+        <img class="visual chart chart-fallback" src="assets/corrective-movement-arxiv.png" alt="Matched Relational Placement scenes when the goal already holds and when corrective movement is required, with success rates and Wilson 95% confidence intervals." loading="lazy" width="2000" height="1653">
+        <figcaption>20 trials per condition and policy. Both conditions use the same relation instruction. Whiskers: Wilson 95% confidence intervals. <a href="spa-bench-paper.pdf#page=16">Paper Table IX</a>.</figcaption>
+      </figure>
     </section>
 
     <section id="cross-task">
@@ -176,7 +185,11 @@
         <p>A policy may associate an object with the task or destination it saw during training. The cross-task-object diagnostic asks whether a familiar spatial behavior still works when an object normally used in another task is introduced.</p>
         <p>Success falls for all three fully evaluated policies, suggesting sensitivity to learned object–task associations. Yet none defaults to placing the juggling ball in the bowl during Relational Placement, even though that was its only demonstrated goal during training. This suggests some transfer beyond a memorized object–goal association, without reliable success at the requested relation.</p>
       </div>
-      <figure class="section-figure"><img class="visual chart" src="assets/cross-task.png" alt="Cross-task object evaluation showing standard and cross-task spatial grounding success." loading="lazy" width="2077" height="1242"></figure>
+      <figure class="section-figure" data-chart-example hidden><img class="visual withheld" src="assets/cross-task-examples.png" alt="Relational Placement training uses blocks and pens; cross-task evaluation introduces the juggling ball previously used for Relative Size." loading="lazy" width="2400" height="1273"></figure>
+      <figure class="section-figure" data-results-chart="cross-task">
+        <img class="visual chart chart-fallback" src="assets/cross-task.png" alt="Cross-task object evaluation showing standard and cross-task spatial grounding success." loading="lazy" width="2077" height="1242">
+        <figcaption>ID spatial grounding over five comparable tasks, with 100 trials per condition and policy. Object State is excluded from this matched comparison. Whiskers: Wilson 95% confidence intervals. <a href="spa-bench-paper.pdf#page=16">Paper Table IX</a>.</figcaption>
+      </figure>
     </section>
 
     <section id="failures">
@@ -185,7 +198,10 @@
         <p>A success rate tells us whether a rollout completed the task, but not why it failed. We therefore assign each unsuccessful OOD rollout a primary failure mode. Each bar below shows the mix of errors among failed trials for a task and policy, rather than an overall failure rate.</p>
         <p>The dominant error depends on the task. Counting failures are overwhelmingly no-action errors, Ordinal Position often selects the wrong object, Object State frequently chooses the wrong instance from the correct category, and Relational Placement often produces the wrong spatial outcome. There is no single failure mode that explains performance across Spa-Bench.</p>
       </div>
-      <figure class="section-figure"><img class="visual chart" src="assets/failure-analysis-arxiv.png" alt="Updated OOD failure-mode composition by task and policy, separating wrong-object and same-category wrong-instance failures." loading="lazy" width="2000" height="764"></figure>
+      <figure class="section-figure" data-results-chart="failures">
+        <img class="visual chart chart-fallback" src="assets/failure-analysis-arxiv.png" alt="Updated OOD failure-mode composition by task and policy, separating wrong-object and same-category wrong-instance failures." loading="lazy" width="2000" height="764">
+        <figcaption>Each bar describes only the failed OOD trials for its task and policy; the tooltip shows the denominator. <a href="spa-bench-paper.pdf#page=9">Paper Figure 11</a>.</figcaption>
+      </figure>
       <p class="takeaway"><strong>Overall, Spa-Bench shows that successful manipulation does not necessarily imply spatial understanding.</strong></p>
     </section>
 

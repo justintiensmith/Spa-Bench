@@ -2,7 +2,7 @@
   "source": {
     "document": "Spa_Bench_arXiv_Version.pdf",
     "sha256": "7f70322a587bcbfa335d985502ae475fa7d54b267259a245373e773f83863813",
-    "reference": "Appendix D, Tables IV, VI, VII, and VIII, PDF pages 15–16",
+    "reference": "Appendix D, Tables IV, VI–IX, PDF pages 15–16; Figure 11, PDF page 9",
     "tupleFields": ["successes", "trials", "reportedPercent", "reportedWilson95Lower", "reportedWilson95Upper"]
   },
   "policies": [
@@ -29,7 +29,7 @@
     },
     "tasks": {
       "title": "Task-level OOD spatial grounding and direct manipulation",
-      "source": "Tables VI–VII", "page": 15, "minWidth": 820,
+      "source": "Tables VI–VII", "page": 15, "minWidth": 1040,
       "variants": [
         {"id": "ood", "label": "OOD spatial", "tone": "solid", "source": "Table VI"},
         {"id": "direct", "label": "Direct manipulation", "tone": "light", "source": "Table VII"}
@@ -84,6 +84,103 @@
           "groot": {"original": [29,60,48.3,36.2,60.7], "paraphrased": [23,60,38.3,27.1,51.0]},
           "pi": {"original": [29,60,48.3,36.2,60.7], "paraphrased": [25,60,41.7,30.1,54.3]},
           "molmo": {"original": [39,60,65.0,52.4,75.8], "paraphrased": [30,60,50.0,37.7,62.3]}
+        }}
+      ]
+    },
+    "no-intervention": {
+      "title": "No-intervention success by task",
+      "source": "Table IX", "page": 16, "minWidth": 920,
+      "variants": [{"id": "result", "label": "", "tone": "solid"}],
+      "groups": [
+        {"label": ["Counting"], "condition": "Goal already satisfied", "series": {
+          "groot": {"result": [17,20,85.0,64.0,94.8]}, "pi": {"result": [16,20,80.0,58.4,91.9]}, "molmo": {"result": [16,20,80.0,58.4,91.9]}
+        }},
+        {"label": ["Ordinal", "Position"], "condition": "Invalid ordinal", "series": {
+          "groot": {"result": [0,20,0.0,0.0,16.1]}, "pi": {"result": [0,20,0.0,0.0,16.1]}, "molmo": {"result": [0,20,0.0,0.0,16.1]}
+        }},
+        {"label": ["Object", "State"], "condition": "No valid target", "series": {
+          "groot": {"result": [0,20,0.0,0.0,16.1]}, "pi": {"result": [0,20,0.0,0.0,16.1]}, "molmo": {"result": [0,20,0.0,0.0,16.1]}
+        }},
+        {"label": ["Referential", "Description"], "condition": "No candidate", "series": {
+          "groot": {"result": [0,20,0.0,0.0,16.1]}, "pi": {"result": [0,20,0.0,0.0,16.1]}, "molmo": {"result": [3,20,15.0,5.2,36.0]}
+        }},
+        {"label": ["Four-task", "aggregate"], "condition": "No intervention across four tasks", "series": {
+          "groot": {"result": [17,80,21.2,13.7,31.4]}, "pi": {"result": [16,80,20.0,12.7,30.0]}, "molmo": {"result": [19,80,23.8,15.8,34.1]}
+        }}
+      ]
+    },
+    "relational-action": {
+      "title": "Relational Placement action-gating control",
+      "source": "Table IX", "page": 16, "minWidth": 820,
+      "variants": [{"id": "result", "label": "", "tone": "solid"}],
+      "groups": [
+        {"label": ["Goal already holds", "No movement needed"], "condition": "Requested relation already satisfied", "series": {
+          "groot": {"result": [19,20,95.0,76.4,99.1]}, "pi": {"result": [16,20,80.0,58.4,91.9]}, "molmo": {"result": [15,20,75.0,53.1,88.8]}
+        }},
+        {"label": ["Correction required", "Movement needed"], "condition": "Corrective movement required", "series": {
+          "groot": {"result": [1,20,5.0,0.9,23.6]}, "pi": {"result": [3,20,15.0,5.2,36.0]}, "molmo": {"result": [1,20,5.0,0.9,23.6]}
+        }}
+      ]
+    },
+    "cross-task": {
+      "title": "ID spatial grounding with standard and cross-task objects",
+      "source": "Table IX", "page": 16, "minWidth": 820,
+      "variants": [{"id": "result", "label": "", "tone": "solid"}],
+      "groups": [
+        {"label": ["Standard objects"], "condition": "Five-task ID spatial grounding", "series": {
+          "groot": {"result": [64,100,64.0,54.2,72.7]}, "pi": {"result": [66,100,66.0,56.3,74.5]}, "molmo": {"result": [70,100,70.0,60.4,78.1]}
+        }},
+        {"label": ["Cross-task objects"], "condition": "Five-task ID spatial grounding", "series": {
+          "groot": {"result": [55,100,55.0,45.2,64.4]}, "pi": {"result": [54,100,54.0,44.3,63.4]}, "molmo": {"result": [53,100,53.0,43.3,62.5]}
+        }}
+      ]
+    },
+    "failures": {
+      "type": "stacked",
+      "title": "Primary failure-mode composition for OOD spatial grounding",
+      "source": "Figure 11", "page": 9, "minWidth": 1040,
+      "countReference": "Archived Task Failure Data; wrong-target split checked against Figure 11 in the supplied paper",
+      "modes": [
+        {"id": "wrong-object", "label": "Wrong object", "color": "#6f5aa8"},
+        {"id": "wrong-instance", "label": "Same-category wrong instance", "color": "#9a86c7"},
+        {"id": "no-action", "label": "No action", "color": "#e07a3f"},
+        {"id": "grasp", "label": "Grasp failure", "color": "#3b8f8a"},
+        {"id": "spatial-outcome", "label": "Incorrect spatial outcome", "color": "#cfc5e6"},
+        {"id": "timeout", "label": "Timeout", "color": "#efa36f"},
+        {"id": "drop", "label": "Premature release or drop", "color": "#f6d2b7"},
+        {"id": "drift", "label": "Control drift", "color": "#78b8b4"},
+        {"id": "release", "label": "Unable to release object", "color": "#c5dfdc"}
+      ],
+      "groups": [
+        {"label": ["Counting"], "paperImage": "X9.png", "series": {
+          "groot": {"failures": 50, "counts": [0,0,50,0,0,0,0,0,0]},
+          "pi": {"failures": 50, "counts": [0,0,50,0,0,0,0,0,0]},
+          "molmo": {"failures": 50, "counts": [0,0,48,1,1,0,0,0,0]}
+        }},
+        {"label": ["Ordinal", "Position"], "paperImage": "X12.png", "series": {
+          "groot": {"failures": 29, "counts": [27,0,0,0,0,0,1,1,0]},
+          "pi": {"failures": 27, "counts": [26,0,0,0,0,0,1,0,0]},
+          "molmo": {"failures": 23, "counts": [21,0,0,1,0,0,1,0,0]}
+        }},
+        {"label": ["Relational", "Placement"], "paperImage": "X14.png", "series": {
+          "groot": {"failures": 11, "counts": [0,0,0,1,3,2,2,0,3]},
+          "pi": {"failures": 14, "counts": [0,0,0,1,13,0,0,0,0]},
+          "molmo": {"failures": 25, "counts": [0,0,2,2,19,1,0,1,0]}
+        }},
+        {"label": ["Object", "State"], "paperImage": "X16.png", "series": {
+          "groot": {"failures": 33, "counts": [1,32,0,0,0,0,0,0,0]},
+          "pi": {"failures": 32, "counts": [0,32,0,0,0,0,0,0,0]},
+          "molmo": {"failures": 12, "counts": [1,11,0,0,0,0,0,0,0]}
+        }},
+        {"label": ["Relative", "Size"], "paperImage": "X18.png", "series": {
+          "groot": {"failures": 21, "counts": [10,0,0,8,0,0,0,3,0]},
+          "pi": {"failures": 23, "counts": [22,0,0,1,0,0,0,0,0]},
+          "molmo": {"failures": 18, "counts": [15,0,3,0,0,0,0,0,0]}
+        }},
+        {"label": ["Referential", "Description"], "paperImage": "X20.png", "series": {
+          "groot": {"failures": 23, "counts": [5,10,1,4,0,0,3,0,0]},
+          "pi": {"failures": 32, "counts": [2,27,0,3,0,0,0,0,0]},
+          "molmo": {"failures": 16, "counts": [5,8,1,2,0,0,0,0,0]}
         }}
       ]
     }
