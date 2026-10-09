@@ -105,8 +105,8 @@
     <section id="aggregate-results">
       <h2>A widening spatial-grounding gap</h2>
       <div class="prose">
-        <p>Spatial grounding connects a language description to the objects, attributes, and relationships in a scene so that a robot can choose the correct response. Spa-Bench asks whether successful manipulation is accompanied by this scene-grounded understanding.</p>
-        <p>A direct instruction names the target explicitly. In-distribution (ID) spatial instructions use combinations represented during training; out-of-distribution (OOD) spatial instructions require new combinations of familiar components. All three fully evaluated policies perform best with direct instructions, less well with ID spatial instructions, and worse still with OOD combinations.</p>
+        <p>Spatial grounding involves interpreting language about object attributes, spatial relationships, and scene organization in the current workspace to identify the intended target and desired outcome. Spa-Bench tests whether policies that can execute the required manipulation under a direct instruction can also determine the correct response from a spatial instruction.</p>
+        <p>Direct instructions name the target explicitly. In-distribution (ID) spatial instructions use combinations seen in spatial training; out-of-distribution (OOD) spatial instructions require new combinations of familiar concepts and objects. Across the three fully evaluated policies, aggregate success is highest with direct instructions, lower with ID spatial instructions, and lowest with OOD spatial instructions.</p>
       </div>
       <figure class="section-figure" data-results-chart="aggregate">
         <img class="visual chart chart-fallback" src="assets/aggregate-success.png" alt="Aggregate success rates for direct manipulation, in-distribution spatial grounding, and out-of-distribution spatial grounding." loading="lazy" width="1910" height="1179">
