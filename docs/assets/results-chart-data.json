@@ -1,0 +1,91 @@
+{
+  "source": {
+    "document": "Spa_Bench_arXiv_Version.pdf",
+    "sha256": "7f70322a587bcbfa335d985502ae475fa7d54b267259a245373e773f83863813",
+    "reference": "Appendix D, Tables IV, VI, VII, and VIII, PDF pages 15–16",
+    "tupleFields": ["successes", "trials", "reportedPercent", "reportedWilson95Lower", "reportedWilson95Upper"]
+  },
+  "policies": [
+    {"id": "groot", "label": "GR00T-N1.7 F-LLM", "color": "#df5544", "light": "#efc0ba"},
+    {"id": "pi", "label": "π₀.₅", "color": "#59a361", "light": "#d7e6bf"},
+    {"id": "molmo", "label": "MolmoAct2", "color": "#5482ed", "light": "#c8dbf3"}
+  ],
+  "charts": {
+    "aggregate": {
+      "title": "Aggregate success by instruction condition",
+      "source": "Table IV", "page": 15, "minWidth": 820,
+      "variants": [{"id": "result", "label": "", "tone": "solid"}],
+      "groups": [
+        {"label": ["Direct", "manipulation"], "condition": "Matched direct manipulation", "series": {
+          "groot": {"result": [98,120,81.7,73.8,87.6]}, "pi": {"result": [100,120,83.3,75.7,88.9]}, "molmo": {"result": [107,120,89.2,82.3,93.6]}
+        }},
+        {"label": ["ID spatial", "grounding"], "condition": "ID spatial grounding", "series": {
+          "groot": {"result": [81,120,67.5,58.7,75.2]}, "pi": {"result": [82,120,68.3,59.6,76.0]}, "molmo": {"result": [88,120,73.3,64.8,80.4]}
+        }},
+        {"label": ["OOD spatial", "grounding"], "condition": "All OOD spatial grounding", "series": {
+          "groot": {"result": [133,300,44.3,38.8,50.0]}, "pi": {"result": [122,300,40.7,35.3,46.3]}, "molmo": {"result": [156,300,52.0,46.4,57.6]}
+        }}
+      ]
+    },
+    "tasks": {
+      "title": "Task-level OOD spatial grounding and direct manipulation",
+      "source": "Tables VI–VII", "page": 15, "minWidth": 820,
+      "variants": [
+        {"id": "ood", "label": "OOD spatial", "tone": "solid", "source": "Table VI"},
+        {"id": "direct", "label": "Direct manipulation", "tone": "light", "source": "Table VII"}
+      ],
+      "groups": [
+        {"label": ["Counting"], "series": {
+          "groot": {"ood": [0,50,0.0,0.0,7.1], "direct": [12,20,60.0,38.7,78.1]},
+          "pi": {"ood": [0,50,0.0,0.0,7.1], "direct": [11,20,55.0,34.2,74.2]},
+          "molmo": {"ood": [0,50,0.0,0.0,7.1], "direct": [16,20,80.0,58.4,91.9]}
+        }},
+        {"label": ["Ordinal", "Position"], "series": {
+          "groot": {"ood": [21,50,42.0,29.4,55.8], "direct": [19,20,95.0,76.4,99.1]},
+          "pi": {"ood": [23,50,46.0,33.0,59.6], "direct": [20,20,100.0,83.9,100.0]},
+          "molmo": {"ood": [27,50,54.0,40.4,67.0], "direct": [17,20,85.0,64.0,94.8]}
+        }},
+        {"label": ["Relational", "Placement"], "series": {
+          "groot": {"ood": [39,50,78.0,64.8,87.2], "direct": [17,20,85.0,64.0,94.8]},
+          "pi": {"ood": [36,50,72.0,58.3,82.5], "direct": [18,20,90.0,69.9,97.2]},
+          "molmo": {"ood": [25,50,50.0,36.6,63.4], "direct": [17,20,85.0,64.0,94.8]}
+        }},
+        {"label": ["Object", "State"], "series": {
+          "groot": {"ood": [17,50,34.0,22.4,47.8], "direct": [19,20,95.0,76.4,99.1]},
+          "pi": {"ood": [18,50,36.0,24.1,49.9], "direct": [18,20,90.0,69.9,97.2]},
+          "molmo": {"ood": [38,50,76.0,62.6,85.7], "direct": [20,20,100.0,83.9,100.0]}
+        }},
+        {"label": ["Relative", "Size"], "series": {
+          "groot": {"ood": [29,50,58.0,44.2,70.6], "direct": [19,20,95.0,76.4,99.1]},
+          "pi": {"ood": [27,50,54.0,40.4,67.0], "direct": [20,20,100.0,83.9,100.0]},
+          "molmo": {"ood": [32,50,64.0,50.1,75.9], "direct": [20,20,100.0,83.9,100.0]}
+        }},
+        {"label": ["Referential", "Description"], "series": {
+          "groot": {"ood": [27,50,54.0,40.4,67.0], "direct": [12,20,60.0,38.7,78.1]},
+          "pi": {"ood": [18,50,36.0,24.1,49.9], "direct": [13,20,65.0,43.3,81.9]},
+          "molmo": {"ood": [34,50,68.0,54.2,79.2], "direct": [17,20,85.0,64.0,94.8]}
+        }}
+      ]
+    },
+    "paraphrasing": {
+      "title": "Original and paraphrased instructions on 60 matched scenes",
+      "source": "Table VIII", "page": 16, "minWidth": 820,
+      "variants": [
+        {"id": "original", "label": "Original instructions", "tone": "solid"},
+        {"id": "paraphrased", "label": "Paraphrased instructions", "tone": "light"}
+      ],
+      "groups": [
+        {"label": ["Direct", "manipulation"], "condition": "Direct manipulation", "series": {
+          "groot": {"original": [49,60,81.7,70.1,89.4], "paraphrased": [42,60,70.0,57.5,80.1]},
+          "pi": {"original": [52,60,86.7,75.8,93.1], "paraphrased": [52,60,86.7,75.8,93.1]},
+          "molmo": {"original": [54,60,90.0,79.9,95.3], "paraphrased": [54,60,90.0,79.9,95.3]}
+        }},
+        {"label": ["OOD spatial", "grounding"], "condition": "OOD spatial grounding", "series": {
+          "groot": {"original": [29,60,48.3,36.2,60.7], "paraphrased": [23,60,38.3,27.1,51.0]},
+          "pi": {"original": [29,60,48.3,36.2,60.7], "paraphrased": [25,60,41.7,30.1,54.3]},
+          "molmo": {"original": [39,60,65.0,52.4,75.8], "paraphrased": [30,60,50.0,37.7,62.3]}
+        }}
+      ]
+    }
+  }
+}

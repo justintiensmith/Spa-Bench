@@ -7,6 +7,8 @@
   <title>Spa-Bench — Real-Robot Spatial Grounding Benchmark</title>
   <link rel="icon" type="image/png" href="assets/spa-capybara-transparent.png">
   <link rel="apple-touch-icon" href="assets/spa-capybara-transparent.png">
+  <link rel="stylesheet" href="assets/results-charts.css">
+  <script src="assets/results-charts.js" defer></script>
   <style>
     :root { --ink: #111827; --muted: #5f6877; --blue: #2563eb; --line: #e5e7eb; --soft: #f7f8fa; --max: 1040px; }
     * { box-sizing: border-box; }
@@ -105,7 +107,10 @@
         <p>Spatial grounding connects a language description to the objects, attributes, and relationships in a scene so that a robot can choose the correct response. Spa-Bench asks whether successful manipulation is accompanied by this scene-grounded understanding.</p>
         <p>A direct instruction names the target explicitly. In-distribution (ID) spatial instructions use combinations represented during training; out-of-distribution (OOD) spatial instructions require new combinations of familiar components. All three fully evaluated policies perform best with direct instructions, less well with ID spatial instructions, and worse still with OOD combinations.</p>
       </div>
-      <figure class="section-figure"><img class="visual chart" src="assets/aggregate-success.png" alt="Aggregate success rates for direct manipulation, in-distribution spatial grounding, and out-of-distribution spatial grounding." loading="lazy" width="1910" height="1179"></figure>
+      <figure class="section-figure" data-results-chart="aggregate">
+        <img class="visual chart chart-fallback" src="assets/aggregate-success.png" alt="Aggregate success rates for direct manipulation, in-distribution spatial grounding, and out-of-distribution spatial grounding." loading="lazy" width="1910" height="1179">
+        <figcaption>ID: 120 trials per policy. OOD: all 300 trials. Direct manipulation: 120 matched-control trials. Whiskers: Wilson 95% confidence intervals. <a href="spa-bench-paper.pdf#page=15">Paper Table IV</a>.</figcaption>
+      </figure>
     </section>
 
     <section id="matched-scenes">
@@ -116,9 +121,9 @@
         <p>This reflects a broader pattern across 120 matched scenes per policy. Success ranges from 81.7–89.2% when the target is named directly, but falls to 41.7–60.8% when the same scenes require spatial grounding. The models can often execute the manipulation, yet struggle to determine what the spatial instruction requires.</p>
       </div>
       <figure class="section-figure"><img class="visual withheld" src="assets/matched-scene-example.png" alt="The same scene and intended target lead to a successful direct manipulation rollout and a failed OOD spatial grounding rollout." loading="lazy" width="1498" height="717"></figure>
-      <figure class="section-figure">
-        <img class="visual chart" src="assets/task-success-arxiv.png" alt="Task-level OOD spatial-grounding and direct-manipulation success for three policies, including Wilson 95% confidence intervals." loading="lazy" width="2000" height="301">
-        <figcaption>Dark bars: OOD spatial instructions (50 trials per task). Light bars: direct manipulation (20 trials per task). Whiskers: Wilson 95% confidence intervals. The matched comparison above uses the 20 shared scenes per task.</figcaption>
+      <figure class="section-figure" data-results-chart="tasks">
+        <img class="visual chart chart-fallback" src="assets/task-success-arxiv.png" alt="Task-level OOD spatial-grounding and direct-manipulation success for three policies, including Wilson 95% confidence intervals." loading="lazy" width="2000" height="301">
+        <figcaption>OOD spatial: 50 trials per task. Direct manipulation: 20 trials per task. Whiskers: Wilson 95% confidence intervals. The matched comparison above uses the 20 shared scenes per task. <a href="spa-bench-paper.pdf#page=15">Paper Tables VI–VII</a>.</figcaption>
       </figure>
     </section>
 
@@ -129,9 +134,9 @@
         <p>On a 60-scene subset per policy, direct-manipulation performance remains substantially higher than OOD spatial grounding under both original and paraphrased instructions. Paraphrasing reduces spatial success for all three policies, while its effect on direct instructions varies by policy. The gap is therefore not explained by one particular phrasing.</p>
       </div>
       <figure class="section-figure"><img class="visual withheld" src="assets/paraphrasing-arxiv.png" alt="Original and paraphrased instructions produce failed spatial rollouts and successful direct-manipulation rollouts on the same scene." loading="lazy" width="2000" height="1689"></figure>
-      <figure class="section-figure">
-        <img class="visual chart" src="assets/paraphrase-results-arxiv.png" alt="Success under original and paraphrased direct-manipulation and OOD spatial instructions, with Wilson 95% confidence intervals." loading="lazy" width="2000" height="658">
-        <figcaption>Dark bars: original instructions. Light bars: paraphrases. Each condition uses the same 60 scenes per policy; whiskers show Wilson 95% confidence intervals.</figcaption>
+      <figure class="section-figure" data-results-chart="paraphrasing">
+        <img class="visual chart chart-fallback" src="assets/paraphrase-results-arxiv.png" alt="Success under original and paraphrased direct-manipulation and OOD spatial instructions, with Wilson 95% confidence intervals." loading="lazy" width="2000" height="658">
+        <figcaption>Each condition uses the same 60 scenes per policy. Whiskers: Wilson 95% confidence intervals. <a href="spa-bench-paper.pdf#page=16">Paper Table VIII</a>.</figcaption>
       </figure>
     </section>
 
