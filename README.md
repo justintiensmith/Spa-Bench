@@ -1,5 +1,7 @@
 # Spa-Bench
 
+[Project website](https://justintiensmith.github.io/Spa-Bench/) · [Paper on arXiv](https://arxiv.org/abs/2610.12696)
+
 Spa-Bench is a real-robot benchmark for evaluating scene-grounded semantic and
 compositional transfer in vision-language-action (VLA) policies. It uses an
 SO-101 robot, two RGB camera views, a 1,200-demonstration fine-tuning corpus,
